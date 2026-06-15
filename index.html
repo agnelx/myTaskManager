@@ -505,18 +505,45 @@ let msalInstance = null;
 let outlookSyncing = false;
 
 function loadState(){
-  try{ const s=localStorage.getItem(SK); if(s) state=Object.assign(state,JSON.parse(s)); }catch(e){}
+  let loaded = false;
+  try{
+    const s=localStorage.getItem(SK);
+    if(s){ state=Object.assign(state,JSON.parse(s)); loaded=true; }
+  }catch(e){ console.error('localStorage read error:',e); }
   if(!state.tasks) state.tasks=[];
   if(!state.meetings) state.meetings=[];
   if(!state.reminders) state.reminders=[];
   if(!state.aiHistory) state.aiHistory=[];
   if(!state.outlookMeetings) state.outlookMeetings=[];
-  seedDefaults();
+  // Only seed on the very first run ever (no saved state exists at all).
+  // Once initialized=true is saved, never re-seed even if lists are emptied.
+  if(!loaded || !state.initialized){
+    seedDefaults();
+    state.initialized = true;
+    saveState();
+  }
 }
-function saveState(){ try{ localStorage.setItem(SK,JSON.stringify(state)); }catch(e){} }
+function saveState(){
+  try{
+    localStorage.setItem(SK,JSON.stringify(state));
+    return true;
+  }catch(e){
+    console.error('localStorage write error:',e);
+    showToast('⚠️ Could not save — storage blocked by browser');
+    return false;
+  }
+}
+function checkStorageHealth(){
+  try{
+    const testKey='mytm_storage_test';
+    localStorage.setItem(testKey,'1');
+    const ok = localStorage.getItem(testKey)==='1';
+    localStorage.removeItem(testKey);
+    return ok;
+  }catch(e){ return false; }
+}
 
 function seedDefaults(){
-  if(state.tasks.length>0||state.meetings.length>0) return;
   const d=(o=0)=>{const x=new Date(todayDate);x.setDate(x.getDate()+o);return x.toISOString().slice(0,10)};
   state.tasks=[
     {id:1,type:'work',title:'Finalise Appium V3 build-vs-extend recommendation',note:'CamAPS test automation decision',pri:'high',cat:'SME',due:d(1),done:false,remind:'',progress:45},
@@ -1150,6 +1177,18 @@ Be concise, practical, and direct. Use numbered steps when recommending actions.
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+if(!checkStorageHealth()){
+  setTimeout(()=>{
+    const t = document.getElementById('toast');
+    t.innerHTML = '⚠️ Your browser is blocking saved data (private/incognito mode or cookies disabled for this site). Tasks, settings and API key will NOT be saved between sessions. Use a normal browser window and allow site data. (Tap to dismiss)';
+    t.classList.remove('hidden');
+    t.style.maxWidth='90%';
+    t.style.borderLeftColor='var(--high)';
+    t.style.cursor='pointer';
+    t.style.pointerEvents='auto';
+    t.onclick=()=>t.classList.add('hidden');
+  }, 600);
+}
 loadState();
 if(state.outlookClientId){ initMsal(state.outlookClientId); }
 updateBannerState();
