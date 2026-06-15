@@ -23,6 +23,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 771,
+      "type": "personal",
+      "title": "Check the bank recommended heating email",
+      "note": "",
+      "pri": "med",
+      "cat": "Home",
+      "due": "2026-06-21",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
