@@ -1,5 +1,18 @@
 {
-  "tasks": [],
+  "tasks": [
+    {
+      "id": 1049,
+      "type": "personal",
+      "title": "Photo for Avelyn and Eden",
+      "note": "Passport size photo",
+      "pri": "med",
+      "cat": "Home",
+      "due": "2026-06-17",
+      "remind": "05:44",
+      "done": false,
+      "progress": 0
+    }
+  ],
   "meetings": [],
   "reminders": [],
   "aiHistory": []
