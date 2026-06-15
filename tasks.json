@@ -71,6 +71,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 1153,
+      "type": "work",
+      "title": "Respond to BCN goals and objectives",
+      "note": "",
+      "pri": "high",
+      "cat": "Manager",
+      "due": "2026-06-17",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
