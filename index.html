@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0f172a">
+<title>MyTaskManager</title>
+<style>
+:root{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--surface:#1e293b;
+  --border:rgba(148,163,184,0.15);--border2:rgba(148,163,184,0.28);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --work:#6366f1;--work-bg:rgba(99,102,241,0.12);--work-border:rgba(99,102,241,0.35);
+  --personal:#10b981;--personal-bg:rgba(16,185,129,0.12);--personal-border:rgba(16,185,129,0.35);
+  --high:#f43f5e;--high-bg:rgba(244,63,94,0.12);
+  --med:#f59e0b;--med-bg:rgba(245,158,11,0.12);
+  --low:#22d3ee;--low-bg:rgba(34,211,238,0.10);
+  --ai:#a78bfa;--ai-bg:rgba(167,139,250,0.12);
+  --outlook:#0078d4;--outlook-bg:rgba(0,120,212,0.12);--outlook-border:rgba(0,120,212,0.35);
+  --radius:12px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit;font-size:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;color:var(--text)}
+
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:640px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:50}
+.topbar-logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--work),var(--ai));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.logo-text{font-size:16px;font-weight:600;letter-spacing:-0.3px}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:-2px}
+.topbar-actions{display:flex;gap:6px}
+.icon-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:all .15s}
+.icon-btn:hover{background:var(--bg3);color:var(--text)}
+.icon-btn.active{background:var(--outlook-bg);border-color:var(--outlook-border);color:var(--outlook)}
+
+/* OUTLOOK BANNER */
+.outlook-banner{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border)}
+.outlook-banner.connected{background:var(--outlook-bg);border-bottom-color:var(--outlook-border)}
+.outlook-banner.setup{background:rgba(245,158,11,0.08);border-bottom-color:rgba(245,158,11,0.25)}
+.outlook-banner.error{background:var(--high-bg);border-bottom-color:rgba(244,63,94,0.3)}
+.ob-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ob-text{flex:1;color:var(--text2)}
+.ob-text b{color:var(--text);font-weight:500}
+.ob-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;background:transparent;cursor:pointer;white-space:nowrap;transition:all .14s}
+.ob-btn.primary{color:var(--outlook);border-color:var(--outlook-border)}
+.ob-btn.primary:hover{background:var(--outlook-bg)}
+.ob-btn.danger{color:var(--high);border-color:rgba(244,63,94,.35)}
+.ob-btn.muted{color:var(--text3);border-color:var(--border)}
+.ob-btn.muted:hover{background:var(--bg3)}
+.ob-spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat{background:var(--bg);padding:10px 8px;text-align:center}
+.stat-n{font-size:20px;font-weight:600}
+.stat-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 18px;background:var(--bg);position:sticky;top:57px;z-index:40;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 13px;font-size:13px;font-weight:500;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.on{color:var(--text);border-bottom-color:var(--work)}
+.tab:hover:not(.on){color:var(--text2)}
+
+.content{flex:1;padding:16px 18px 100px}
+.sec-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between}
+.sec-label span{background:var(--bg3);color:var(--text2);font-size:10px;padding:1px 7px;border-radius:20px}
+.sec-label .ol-badge{background:var(--outlook-bg);color:var(--outlook);font-size:10px;padding:1px 7px;border-radius:20px;border:1px solid var(--outlook-border)}
+
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .14s;white-space:nowrap}
+.chip.on{background:var(--work);border-color:var(--work);color:#fff}
+.chip.personal.on{background:var(--personal);border-color:var(--personal);color:#fff}
+.chip:hover:not(.on){border-color:var(--border2);color:var(--text)}
+
+/* TASK CARD */
+.task{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start;transition:border-color .14s;position:relative;overflow:hidden}
+.task::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.task.work::before{background:var(--work)}
+.task.personal::before{background:var(--personal)}
+.task:hover{border-color:var(--border2)}
+.task.done-task{opacity:.5}
+.task.done-task .task-title{text-decoration:line-through;color:var(--text3)}
+.task-cb{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s}
+.task-cb.done{background:var(--personal);border-color:var(--personal)}
+.task-cb:hover:not(.done){border-color:var(--personal)}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:14px;font-weight:500;line-height:1.4}
+.task-note{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.4}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.badge-work{background:var(--work-bg);color:var(--work);border:1px solid var(--work-border)}
+.badge-personal{background:var(--personal-bg);color:var(--personal);border:1px solid var(--personal-border)}
+.badge-high{background:var(--high-bg);color:var(--high)}
+.badge-med{background:var(--med-bg);color:var(--med)}
+.badge-low{background:var(--low-bg);color:var(--low)}
+.badge-cat{background:rgba(148,163,184,0.1);color:var(--text2);font-size:10px;padding:2px 7px;border-radius:20px}
+.due-label{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:3px}
+.due-label.overdue{color:var(--high)}
+.task-actions{display:flex;gap:3px;flex-shrink:0;margin-top:1px}
+.task-act-btn{background:none;border:none;color:var(--text3);padding:3px 5px;border-radius:5px;font-size:13px;transition:all .12s}
+.task-act-btn:hover{background:var(--bg3);color:var(--text2)}
+.task-act-btn.ai-btn:hover{color:var(--ai)}
+
+/* MEETING CARD */
+.mtg{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:8px;display:flex;gap:12px;transition:border-color .14s;position:relative;overflow:hidden}
+.mtg::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border2)}
+.mtg.outlook-mtg::before{background:var(--outlook)}
+.mtg.manual-mtg::before{background:var(--work)}
+.mtg:hover{border-color:var(--border2)}
+.mtg-time-col{text-align:right;flex-shrink:0;width:48px}
+.mtg-time{font-size:13px;font-weight:600;color:var(--work)}
+.mtg-date{font-size:10px;color:var(--text3);margin-top:2px}
+.mtg-divider{width:1px;background:var(--border2);border-radius:1px;flex-shrink:0}
+.mtg-body{flex:1;min-width:0}
+.mtg-title{font-size:14px;font-weight:500}
+.mtg-meta{font-size:12px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mtg-source{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+.mtg-source.ol{background:var(--outlook-bg);color:var(--outlook);border:1px solid var(--outlook-border)}
+.mtg-source.manual{background:var(--work-bg);color:var(--work);border:1px solid var(--work-border)}
+.site-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.dot-ch{background:#6366f1}.dot-bcn{background:#10b981}.dot-all{background:#a78bfa}.dot-p{background:#f59e0b}
+.mtg-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ai);text-decoration:none;margin-top:5px}
+.mtg-link:hover{text-decoration:underline}
+.mtg-del{background:none;border:none;color:var(--text3);padding:2px 5px;border-radius:5px;font-size:12px;cursor:pointer;align-self:flex-start;flex-shrink:0}
+.mtg-del:hover{color:var(--high)}
+
+/* FAB */
+.fab{position:fixed;bottom:80px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.fab-main{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--work),var(--ai));border:none;color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:transform .15s}
+.fab-main:hover{transform:scale(1.07)}
+.fab-menu{display:none;flex-direction:column;gap:6px;align-items:flex-end}
+.fab-menu.open{display:flex}
+.fab-sub{display:flex;gap:8px;align-items:center}
+.fab-label{font-size:12px;color:var(--text);background:var(--bg2);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap}
+.fab-item{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.fab-item:hover{background:var(--bg3);color:var(--text)}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:90}
+.nav-item{flex:1;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text3);border:none;background:none;transition:color .14s}
+.nav-item.on{color:var(--work)}
+.nav-item svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border:1px solid var(--border);border-bottom:none}
+.modal-drag{width:36px;height:4px;background:var(--bg3);border-radius:2px;margin:10px auto 14px}
+.modal-title{font-size:16px;font-weight:600;padding:0 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.modal-body{padding:16px 18px 8px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);outline:none;transition:border-color .14s}
+.field input:focus,.field textarea:focus{border-color:var(--work)}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.field textarea{resize:vertical;min-height:68px;line-height:1.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.type-opt{padding:9px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;font-size:13px;font-weight:500;cursor:pointer;transition:all .14s;color:var(--text2)}
+.type-opt.work.sel{background:var(--work-bg);border-color:var(--work);color:var(--work)}
+.type-opt.personal.sel{background:var(--personal-bg);border-color:var(--personal);color:var(--personal)}
+.modal-footer{display:flex;gap:8px;padding:12px 18px 20px}
+.btn-cancel{flex:1;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:500}
+.btn-save{flex:2;padding:12px;border-radius:var(--radius-sm);border:none;background:var(--work);color:#fff;font-weight:600;transition:opacity .14s}
+.btn-save:hover{opacity:.88}
+.btn-outlook{flex:2;padding:12px;border-radius:var(--radius-sm);border:none;background:var(--outlook);color:#fff;font-weight:600;transition:opacity .14s}
+.btn-outlook:hover{opacity:.88}
+
+/* OUTLOOK SETUP MODAL */
+.setup-step{background:var(--bg3);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px}
+.setup-step-num{font-size:11px;font-weight:700;color:var(--outlook);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.setup-step p{font-size:13px;color:var(--text2);line-height:1.6}
+.setup-step a{color:var(--outlook);text-decoration:none}
+.setup-step a:hover{text-decoration:underline}
+.setup-step code{background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--ai);font-family:monospace}
+.info-box{background:var(--outlook-bg);border:1px solid var(--outlook-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px}
+.info-box b{color:var(--outlook);font-weight:500}
+
+/* AI */
+.ai-msg-wrap{display:flex;flex-direction:column;gap:3px;margin-bottom:2px}
+.ai-msg-label{font-size:10px;color:var(--text3);padding:0 4px}
+.ai-msg-bubble{padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.6;max-width:88%;white-space:pre-wrap}
+.ai-msg-bubble.user{background:var(--work);color:#fff;border-radius:12px 12px 4px 12px;align-self:flex-end}
+.ai-msg-bubble.assistant{background:var(--bg3);color:var(--text);border-radius:12px 12px 12px 4px}
+.ai-quick{padding:5px 11px;border-radius:20px;font-size:12px;border:1px solid var(--ai-bg);background:var(--ai-bg);color:var(--ai);cursor:pointer;transition:all .13s}
+.ai-quick:hover{background:rgba(167,139,250,.22)}
+
+/* PROGRESS BAR */
+.prog-wrap{margin-top:9px}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.prog-label{font-size:11px;color:var(--text3)}
+.prog-pct{font-size:11px;font-weight:600;color:var(--text2)}
+.prog-track{height:5px;background:var(--border2);border-radius:3px;overflow:hidden;cursor:pointer;position:relative}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s ease}
+.prog-fill.p-high{background:var(--high)}
+.prog-fill.p-done{background:var(--personal)}
+.prog-fill.p-med{background:var(--med)}
+.prog-fill.p-low{background:var(--low)}
+.prog-steps{display:flex;gap:3px;margin-top:5px}
+.prog-step{flex:1;height:3px;border-radius:2px;background:var(--border2);cursor:pointer;transition:background .15s}
+.prog-step.active{background:var(--work)}
+
+/* REMINDER */
+.reminder-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.reminder-time{font-size:12px;font-weight:600;color:var(--med);min-width:46px}
+.reminder-body{flex:1;min-width:0}
+.reminder-title{font-size:13px;font-weight:500}
+.reminder-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.reminder-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px}
+.reminder-del:hover{color:var(--high)}
+
+/* TOAST */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--work);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--text);z-index:500;max-width:320px;width:90%;transition:opacity .3s;pointer-events:none}
+.toast.hidden{opacity:0}
+.empty-state{text-align:center;padding:44px 20px;color:var(--text3)}
+.empty-icon{font-size:38px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.empty-sub{font-size:13px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div id="toast" class="toast hidden"></div>
+
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-mark">M</div>
+      <div>
+        <div class="logo-text">MyTaskManager</div>
+        <div class="logo-sub" id="today-sub"></div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="ol-icon-btn" onclick="handleOutlookIconClick()" title="Outlook calendar sync">📅</button>
+      <button class="icon-btn" id="notif-btn" onclick="requestNotifPermission()" title="Enable reminders">🔔</button>
+      <button class="icon-btn" onclick="openSettings()" title="Settings" id="settings-btn">⚙️</button>
+      <button class="icon-btn" onclick="openAIChat()" title="AI assistant" style="color:var(--ai)">✦</button>
+    </div>
+  </div>
+
+  <!-- OUTLOOK BANNER -->
+  <div id="outlook-banner" class="outlook-banner setup">
+    <div class="ob-dot" id="ob-dot" style="background:var(--med)"></div>
+    <div class="ob-text" id="ob-text"><b>Outlook not connected.</b> Sync your calendar to see meetings automatically.</div>
+    <button class="ob-btn primary" id="ob-action-btn" onclick="openOutlookSetup()">Connect</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-n" id="s-total" style="color:var(--work)">0</div><div class="stat-l">Open</div></div>
+    <div class="stat"><div class="stat-n" id="s-today" style="color:var(--ai)">0</div><div class="stat-l">Due today</div></div>
+    <div class="stat"><div class="stat-n" id="s-over" style="color:var(--high)">0</div><div class="stat-l">Overdue</div></div>
+    <div class="stat"><div class="stat-n" id="s-done" style="color:var(--personal)">0</div><div class="stat-l">Done</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="main-tabs">
+    <button class="tab on" onclick="switchTab('today',this)">Today</button>
+    <button class="tab" onclick="switchTab('tasks',this)">Tasks</button>
+    <button class="tab" onclick="switchTab('meetings',this)">Meetings</button>
+    <button class="tab" onclick="switchTab('reminders',this)">Reminders</button>
+  </div>
+
+  <div class="content" id="main-content"></div>
+</div>
+
+<!-- FAB -->
+<div class="fab">
+  <div class="fab-menu" id="fab-menu">
+    <div class="fab-sub">
+      <div class="fab-label">Work task</div>
+      <button class="fab-item" onclick="openAddTask('work');toggleFab()" style="color:var(--work);border-color:var(--work-border)">💼</button>
+    </div>
+    <div class="fab-sub">
+      <div class="fab-label">Personal task</div>
+      <button class="fab-item" onclick="openAddTask('personal');toggleFab()" style="color:var(--personal);border-color:var(--personal-border)">🌿</button>
+    </div>
+    <div class="fab-sub">
+      <div class="fab-label">Manual meeting</div>
+      <button class="fab-item" onclick="openAddMeeting();toggleFab()" style="color:var(--ai);border-color:rgba(167,139,250,.35)">📅</button>
+    </div>
+    <div class="fab-sub">
+      <div class="fab-label">Reminder</div>
+      <button class="fab-item" onclick="openAddReminder();toggleFab()" style="color:var(--med);border-color:rgba(245,158,11,.35)">⏰</button>
+    </div>
+  </div>
+  <button class="fab-main" onclick="toggleFab()" id="fab-btn">+</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item on" id="nav-today" onclick="switchTab('today',this);updateBottomNav('today')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Today
+  </button>
+  <button class="nav-item" id="nav-tasks" onclick="switchTab('tasks',this);updateBottomNav('tasks')">
+    <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tasks
+  </button>
+  <button class="nav-item" id="nav-meetings" onclick="switchTab('meetings',this);updateBottomNav('meetings')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Meetings
+  </button>
+  <button class="nav-item" id="nav-reminders" onclick="switchTab('reminders',this);updateBottomNav('reminders')">
+    <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Reminders
+  </button>
+</nav>
+
+<!-- MODAL: Outlook Setup -->
+<div class="modal-overlay hidden" id="outlook-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" style="color:var(--outlook)">📅 Connect Outlook Calendar</div>
+    <div class="modal-body">
+      <div id="ol-setup-view">
+        <div class="info-box">
+          <b>One-time setup required.</b> You need a free Azure App Registration to allow this app to read your Outlook calendar. This is safe — the app only gets read-only calendar access using your Microsoft account.
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 1 — Register the app in Azure</div>
+          <p>Go to <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">portal.azure.com → App registrations</a> → <b>New registration</b><br>
+          Name: <code>MyTaskManager</code> · Account type: <b>Accounts in any org + personal</b><br>
+          Redirect URI: <b>Single-page application (SPA)</b> → paste the URL of this HTML file.</p>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 2 — Add API permissions</div>
+          <p>In your app → <b>API permissions</b> → Add → Microsoft Graph → Delegated:<br>
+          Add <code>Calendars.Read</code> and <code>User.Read</code> → click <b>Grant admin consent</b>.</p>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 3 — Paste your Client ID below</div>
+          <p>Copy the <b>Application (client) ID</b> from the app overview page.</p>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Azure Application (Client) ID</label>
+          <input id="ol-client-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Days ahead to sync</label>
+          <select id="ol-days-ahead">
+            <option value="7">Next 7 days</option>
+            <option value="14" selected>Next 14 days</option>
+            <option value="30">Next 30 days</option>
+          </select>
+        </div>
+      </div>
+      <div id="ol-connected-view" style="display:none">
+        <div class="info-box" style="background:var(--outlook-bg);border-color:var(--outlook-border)">
+          <b>✓ Outlook connected</b> — Syncing calendar events automatically.<br>
+          Signed in as: <span id="ol-user-display">—</span>
+        </div>
+        <div class="field">
+          <label>Days ahead to sync</label>
+          <select id="ol-days-ahead-2">
+            <option value="7">Next 7 days</option>
+            <option value="14" selected>Next 14 days</option>
+            <option value="30">Next 30 days</option>
+          </select>
+        </div>
+        <button onclick="syncOutlookNow()" style="width:100%;padding:11px;border-radius:var(--radius-sm);border:1px solid var(--outlook-border);background:var(--outlook-bg);color:var(--outlook);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:8px">↻ Sync now</button>
+        <button onclick="disconnectOutlook()" style="width:100%;padding:11px;border-radius:var(--radius-sm);border:1px solid rgba(244,63,94,.3);background:var(--high-bg);color:var(--high);font-size:13px;cursor:pointer">Disconnect Outlook</button>
+      </div>
+    </div>
+    <div class="modal-footer" id="ol-modal-footer">
+      <button class="btn-cancel" onclick="closeModal('outlook-modal')">Cancel</button>
+      <button class="btn-outlook" onclick="connectOutlook()">Connect & Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Task -->
+<div class="modal-overlay hidden" id="task-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="task-modal-title">Add task</div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Type</label>
+        <div class="type-toggle">
+          <div class="type-opt work sel" id="type-work" onclick="setType('work')">💼 Work</div>
+          <div class="type-opt personal" id="type-personal" onclick="setType('personal')">🌿 Personal</div>
+        </div>
+      </div>
+      <div class="field"><label>Task</label><input id="t-title" type="text" placeholder="What needs to be done?"></div>
+      <div class="field"><label>Notes (optional)</label><textarea id="t-note" placeholder="Context, links, details..."></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Priority</label>
+          <select id="t-pri"><option value="high">🔴 High</option><option value="med" selected>🟡 Medium</option><option value="low">🔵 Low</option></select>
+        </div>
+        <div class="field"><label>Category</label>
+          <select id="t-cat">
+            <option value="SME">SME / Technical</option><option value="Manager">Manager</option>
+            <option value="Agile">Agile / Sprint</option><option value="Admin">Admin</option>
+            <option value="Personal">Personal</option><option value="Health">Health</option>
+            <option value="Home">Home</option><option value="Finance">Finance</option><option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Due date</label><input id="t-due" type="date"></div>
+        <div class="field"><label>Reminder time</label><input id="t-remind" type="time"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('task-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveTask()">Save task</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Meeting -->
+<div class="modal-overlay hidden" id="mtg-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Add meeting manually</div>
+    <div class="modal-body">
+      <div class="field"><label>Title</label><input id="m-title" type="text" placeholder="Meeting title"></div>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="m-date" type="date"></div>
+        <div class="field"><label>Time</label><input id="m-time" type="time" value="09:00"></div>
+      </div>
+      <div class="field"><label>Site</label>
+        <select id="m-site">
+          <option value="all">Both sites (BCN + CH)</option>
+          <option value="CH">Switzerland only</option>
+          <option value="BCN">Barcelona only</option>
+          <option value="personal">Personal</option>
+        </select>
+      </div>
+      <div class="field"><label>Meeting link (Teams / Zoom / Meet)</label><input id="m-link" type="url" placeholder="https://teams.microsoft.com/..."></div>
+      <div class="field"><label>Notes</label><textarea id="m-note" placeholder="Agenda, attendees..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('mtg-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveMeeting()">Save meeting</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Reminder -->
+<div class="modal-overlay hidden" id="rem-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Add reminder</div>
+    <div class="modal-body">
+      <div class="field"><label>Reminder text</label><input id="r-title" type="text" placeholder="What to remind you about?"></div>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="r-date" type="date"></div>
+        <div class="field"><label>Time</label><input id="r-time" type="time" value="08:00"></div>
+      </div>
+      <div class="field"><label>Repeat</label>
+        <select id="r-repeat">
+          <option value="none">No repeat</option><option value="daily">Daily</option>
+          <option value="weekly">Weekly</option><option value="weekdays">Weekdays</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('rem-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveReminder()">Save reminder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AI Chat -->
+<div class="modal-overlay hidden" id="ai-modal">
+  <div class="modal" style="max-height:88vh">
+    <div class="modal-drag"></div>
+    <div class="modal-title"><span style="color:var(--ai)">✦</span> AI Task Assistant</div>
+    <div class="modal-body" style="padding-bottom:0">
+      <div id="ai-messages" style="min-height:100px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="ai-suggestions"></div>
+      <div class="field" style="margin-bottom:8px">
+        <textarea id="ai-input" placeholder="Ask for help prioritising, planning, decisions..." style="min-height:60px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI()}"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('ai-modal')">Close</button>
+      <button class="btn-save" onclick="sendAI()">Ask AI ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- MSAL library for Microsoft OAuth -->
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.11.0/lib/msal-browser.min.js"></script>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const todayDate = new Date();
+const todayStr = todayDate.toISOString().slice(0,10);
+document.getElementById('today-sub').textContent = todayDate.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+const SK = 'mytm_v2';
+let state = {tasks:[], meetings:[], reminders:[], aiHistory:[], outlookClientId:'', outlookDays:14, outlookMeetings:[], outlookUser:''};
+let currentTab = 'today';
+let editTaskId = null;
+let currentType = 'work';
+let fabOpen = false;
+let msalInstance = null;
+let outlookSyncing = false;
+
+function loadState(){
+  try{ const s=localStorage.getItem(SK); if(s) state=Object.assign(state,JSON.parse(s)); }catch(e){}
+  if(!state.tasks) state.tasks=[];
+  if(!state.meetings) state.meetings=[];
+  if(!state.reminders) state.reminders=[];
+  if(!state.aiHistory) state.aiHistory=[];
+  if(!state.outlookMeetings) state.outlookMeetings=[];
+  seedDefaults();
+}
+function saveState(){ try{ localStorage.setItem(SK,JSON.stringify(state)); }catch(e){} }
+
+function seedDefaults(){
+  if(state.tasks.length>0||state.meetings.length>0) return;
+  const d=(o=0)=>{const x=new Date(todayDate);x.setDate(x.getDate()+o);return x.toISOString().slice(0,10)};
+  state.tasks=[
+    {id:1,type:'work',title:'Finalise Appium V3 build-vs-extend recommendation',note:'CamAPS test automation decision',pri:'high',cat:'SME',due:d(1),done:false,remind:'',progress:45},
+    {id:2,type:'work',title:'Review Product A OQ protocol — section 4',note:'',pri:'high',cat:'SME',due:d(0),done:false,remind:'',progress:70},
+    {id:3,type:'work',title:'Update FTE capacity model Q3–Q4 2026',note:'',pri:'high',cat:'Manager',due:d(2),done:false,remind:'',progress:60},
+    {id:4,type:'work',title:'Product B risk assessment — draft agenda',note:'BCN kickoff',pri:'med',cat:'SME',due:d(3),done:false,remind:'',progress:20},
+    {id:5,type:'work',title:'Post cross-site written status update',note:'',pri:'med',cat:'Agile',due:d(0),done:false,remind:'',progress:0},
+    {id:6,type:'personal',title:'Review heat pump contractor offers',note:'Compare at least 2 before deciding',pri:'high',cat:'Home',due:d(2),done:false,remind:'',progress:30},
+    {id:7,type:'personal',title:'Book dentist appointment',note:'',pri:'low',cat:'Health',due:d(7),done:false,remind:'',progress:0},
+    {id:8,type:'work',title:'CamAPS IQ sign-off',note:'',pri:'high',cat:'SME',due:d(-1),done:false,remind:'',progress:90},
+  ];
+  state.meetings=[
+    {id:1,title:'All-team stand-up BCN + CH',date:d(0),time:'08:00',site:'all',link:'https://teams.microsoft.com',note:'15 min max',source:'manual'},
+    {id:2,title:'Sprint planning',date:d(0),time:'09:00',site:'all',link:'https://teams.microsoft.com',note:'',source:'manual'},
+    {id:3,title:'Cross-site sync',date:d(1),time:'14:00',site:'all',link:'https://teams.microsoft.com',note:'BCN ↔ CH',source:'manual'},
+    {id:4,title:'Automation strategy review',date:d(2),time:'10:00',site:'CH',link:'',note:'Appium V3 prep',source:'manual'},
+  ];
+  saveState();
+}
+
+let nextId=300;
+function uid(){ return ++nextId+(Date.now()%1000); }
+
+// ─── OUTLOOK AUTH ─────────────────────────────────────────────────────────────
+const GRAPH_SCOPES = ['Calendars.Read','User.Read'];
+
+function initMsal(clientId){
+  try{
+    msalInstance = new msal.PublicClientApplication({
+      auth:{
+        clientId,
+        authority:'https://login.microsoftonline.com/common',
+        redirectUri: window.location.href.split('?')[0].split('#')[0]
+      },
+      cache:{ cacheLocation:'localStorage', storeAuthStateInCookie:true }
+    });
+    return true;
+  }catch(e){ console.error('MSAL init error',e); return false; }
+}
+
+async function connectOutlook(){
+  const clientId = document.getElementById('ol-client-id').value.trim();
+  if(!clientId || clientId.length < 30){ showToast('Please enter a valid Client ID'); return; }
+  state.outlookClientId = clientId;
+  state.outlookDays = parseInt(document.getElementById('ol-days-ahead').value)||14;
+  saveState();
+  if(!initMsal(clientId)){ showToast('Could not initialise Microsoft login. Check Client ID.'); return; }
+  try{
+    setBannerSyncing();
+    const result = await msalInstance.loginPopup({scopes: GRAPH_SCOPES});
+    state.outlookUser = result.account?.username || result.account?.name || 'Your account';
+    saveState();
+    await fetchOutlookEvents();
+    showOutlookConnected();
+    closeModal('outlook-modal');
+    showToast('✓ Outlook connected — calendar synced');
+  }catch(e){
+    console.error('Login error',e);
+    showToast('Sign-in cancelled or failed. Try again.');
+    updateBannerState();
+  }
+}
+
+function handleOutlookIconClick(){
+  if(state.outlookClientId && msalInstance){
+    openOutlookSetup();
+  } else {
+    openOutlookSetup();
+  }
+}
+
+async function getGraphToken(){
+  if(!msalInstance) return null;
+  const accounts = msalInstance.getAllAccounts();
+  if(!accounts.length) return null;
+  try{
+    const r = await msalInstance.acquireTokenSilent({scopes:GRAPH_SCOPES, account:accounts[0]});
+    return r.accessToken;
+  }catch(e){
+    try{
+      const r = await msalInstance.acquireTokenPopup({scopes:GRAPH_SCOPES});
+      return r.accessToken;
+    }catch(e2){ return null; }
+  }
+}
+
+async function fetchOutlookEvents(){
+  const token = await getGraphToken();
+  if(!token){ showToast('Could not get calendar access token'); return; }
+  outlookSyncing = true;
+  updateBannerState();
+  try{
+    const now = new Date();
+    const end = new Date();
+    end.setDate(end.getDate()+(state.outlookDays||14));
+    const startISO = now.toISOString();
+    const endISO   = end.toISOString();
+    const url = `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${startISO}&endDateTime=${endISO}&$select=subject,start,end,location,onlineMeetingUrl,bodyPreview,organizer&$orderby=start/dateTime&$top=100`;
+    const resp = await fetch(url,{headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}});
+    if(!resp.ok){ const err=await resp.json(); throw new Error(err.error?.message||resp.statusText); }
+    const data = await resp.json();
+    state.outlookMeetings = (data.value||[]).map(ev=>({
+      id: 'ol_'+ev.id?.slice(-12)||uid(),
+      title: ev.subject||'(No title)',
+      date: ev.start?.dateTime?.slice(0,10)||'',
+      time: ev.start?.dateTime?.slice(11,16)||'',
+      endTime: ev.end?.dateTime?.slice(11,16)||'',
+      location: ev.location?.displayName||'',
+      link: ev.onlineMeetingUrl||'',
+      note: ev.bodyPreview?.slice(0,120)||'',
+      organizer: ev.organizer?.emailAddress?.name||'',
+      source:'outlook'
+    }));
+    state.lastOutlookSync = new Date().toISOString();
+    saveState();
+    outlookSyncing = false;
+    updateBannerState();
+    render();
+  }catch(e){
+    console.error('Graph fetch error',e);
+    outlookSyncing = false;
+    updateBannerState();
+    showToast('Sync error: '+e.message);
+  }
+}
+
+async function syncOutlookNow(){
+  const days = parseInt(document.getElementById('ol-days-ahead-2')?.value)||14;
+  state.outlookDays = days;
+  await fetchOutlookEvents();
+  showToast('✓ Calendar synced');
+}
+
+function disconnectOutlook(){
+  if(!confirm('Disconnect Outlook? Synced meetings will be removed.')) return;
+  state.outlookClientId=''; state.outlookUser=''; state.outlookMeetings=[]; state.lastOutlookSync='';
+  msalInstance=null; saveState(); updateBannerState(); closeModal('outlook-modal'); render();
+  showToast('Outlook disconnected');
+}
+
+function openOutlookSetup(){
+  const connected = !!(state.outlookClientId && msalInstance && state.outlookUser);
+  document.getElementById('ol-setup-view').style.display = connected?'none':'block';
+  document.getElementById('ol-connected-view').style.display = connected?'block':'none';
+  if(connected){
+    document.getElementById('ol-user-display').textContent = state.outlookUser;
+    document.getElementById('ol-modal-footer').style.display='none';
+  } else {
+    document.getElementById('ol-modal-footer').style.display='flex';
+    if(state.outlookClientId) document.getElementById('ol-client-id').value=state.outlookClientId;
+  }
+  document.getElementById('outlook-modal').classList.remove('hidden');
+}
+
+// ─── BANNER ───────────────────────────────────────────────────────────────────
+function setBannerSyncing(){
+  document.getElementById('ob-dot').style.background='var(--outlook)';
+  document.getElementById('ob-text').innerHTML='<b>Connecting to Outlook...</b>';
+  document.getElementById('ob-action-btn').innerHTML='<span class="ob-spin">↻</span>';
+  document.getElementById('ob-action-btn').disabled=true;
+  document.getElementById('outlook-banner').className='outlook-banner connected';
+}
+function showOutlookConnected(){
+  updateBannerState();
+  document.getElementById('ol-icon-btn').classList.add('active');
+}
+function updateBannerState(){
+  const banner = document.getElementById('outlook-banner');
+  const dot = document.getElementById('ob-dot');
+  const txt = document.getElementById('ob-text');
+  const btn = document.getElementById('ob-action-btn');
+  btn.disabled=false;
+  if(outlookSyncing){
+    banner.className='outlook-banner connected';
+    dot.style.background='var(--outlook)';
+    txt.innerHTML='<b>Syncing calendar...</b>';
+    btn.innerHTML='<span class="ob-spin">↻</span>';
+    return;
+  }
+  if(state.outlookClientId && state.outlookUser){
+    banner.className='outlook-banner connected';
+    dot.style.background='var(--personal)';
+    const last = state.lastOutlookSync ? new Date(state.lastOutlookSync).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+    txt.innerHTML=`<b>Outlook connected</b> · ${state.outlookUser} · Last sync: ${last}`;
+    btn.textContent='↻ Sync'; btn.className='ob-btn muted';
+    btn.onclick=()=>fetchOutlookEvents();
+    document.getElementById('ol-icon-btn').classList.add('active');
+  } else {
+    banner.className='outlook-banner setup';
+    dot.style.background='var(--med)';
+    txt.innerHTML='<b>Outlook not connected.</b> Tap to sync your calendar automatically.';
+    btn.textContent='Connect'; btn.className='ob-btn primary';
+    btn.onclick=openOutlookSetup;
+    document.getElementById('ol-icon-btn').classList.remove('active');
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  updateStats();
+  const c=document.getElementById('main-content');
+  if(currentTab==='today') c.innerHTML=renderToday();
+  else if(currentTab==='tasks') c.innerHTML=renderTasks();
+  else if(currentTab==='meetings') c.innerHTML=renderMeetings();
+  else if(currentTab==='reminders') c.innerHTML=renderReminders();
+  scheduleReminders();
+}
+
+function allMeetings(){
+  const manual = state.meetings;
+  const ol = state.outlookMeetings;
+  return [...manual,...ol].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+}
+
+function updateStats(){
+  const open=state.tasks.filter(t=>!t.done);
+  document.getElementById('s-total').textContent=open.length;
+  document.getElementById('s-today').textContent=open.filter(t=>t.due===todayStr).length;
+  document.getElementById('s-over').textContent=open.filter(t=>t.due&&t.due<todayStr).length;
+  document.getElementById('s-done').textContent=state.tasks.filter(t=>t.done).length;
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  const p=d.split('-');
+  const dt=new Date(+p[0],+p[1]-1,+p[2]);
+  if(d===todayStr) return 'Today';
+  const tom=new Date(todayDate); tom.setDate(tom.getDate()+1);
+  if(d===tom.toISOString().slice(0,10)) return 'Tomorrow';
+  return dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+}
+function isPast(d){ return d&&d<todayStr; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function progColor(pct, done){
+  if(done) return 'p-done';
+  if(pct===100) return 'p-done';
+  if(pct>=60) return 'p-low';
+  if(pct>=30) return 'p-med';
+  return 'p-high';
+}
+
+function taskCard(t){
+  const over=!t.done&&isPast(t.due);
+  const priLabel=t.pri==='high'?'High':t.pri==='med'?'Medium':'Low';
+  const pct = t.done ? 100 : (t.progress||0);
+  const pClass = progColor(pct, t.done);
+  // 5 clickable step markers: 0,25,50,75,100
+  const steps=[0,25,50,75,100];
+  const stepsHtml=steps.map(s=>`<div class="prog-step${pct>=s&&pct>0||pct===100?' active':''}" onclick="setProgress(${t.id},${s})" title="${s}%"></div>`).join('');
+  return `<div class="task ${t.type}${t.done?' done-task':''}">
+    <div class="task-cb${t.done?' done':''}" onclick="toggleTask(${t.id})">
+      ${t.done?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>':''}
+    </div>
+    <div class="task-body">
+      <div class="task-title">${esc(t.title)}</div>
+      ${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}
+      <div class="task-meta">
+        <span class="badge badge-${t.type}">${t.type==='work'?'💼 Work':'🌿 Personal'}</span>
+        <span class="badge badge-${t.pri}">${priLabel}</span>
+        <span class="badge-cat">${esc(t.cat)}</span>
+        ${t.due?`<span class="due-label${over?' overdue':''}">📅 ${fmtDate(t.due)}${over?' · overdue':''}</span>`:''}
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-header">
+          <span class="prog-label">Progress</span>
+          <span class="prog-pct">${pct}%</span>
+        </div>
+        <div class="prog-track" onclick="cycleProgress(${t.id},event)" title="Click to update progress">
+          <div class="prog-fill ${pClass}" style="width:${pct}%"></div>
+        </div>
+        <div class="prog-steps">${stepsHtml}</div>
+      </div>
+    </div>
+    <div class="task-actions">
+      <button class="task-act-btn ai-btn" onclick="askAIAboutTask(${t.id})" title="Ask AI">✦</button>
+      <button class="task-act-btn" onclick="editTask(${t.id})" title="Edit">✏️</button>
+      <button class="task-act-btn" onclick="deleteTask(${t.id})" title="Delete">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function mtgCard(m){
+  const isOl=m.source==='outlook';
+  const siteDot=m.site==='CH'?'dot-ch':m.site==='BCN'?'dot-bcn':m.site==='personal'?'dot-p':'dot-all';
+  const siteLabel=m.site==='CH'?'Switzerland':m.site==='BCN'?'Barcelona':m.site==='personal'?'Personal':'Both sites';
+  const delBtn=isOl?'':`<button class="mtg-del" onclick="deleteMtg('${m.id}')" title="Delete">✕</button>`;
+  const endTime=m.endTime?`–${m.endTime}`:'';
+  const loc=m.location?`<span>📍 ${esc(m.location.slice(0,40))}</span>`:'';
+  return `<div class="mtg ${isOl?'outlook-mtg':'manual-mtg'}">
+    <div class="mtg-time-col">
+      <div class="mtg-time">${m.time}${endTime?'<br><span style="font-size:10px;color:var(--text3)">'+endTime+'</span>':''}</div>
+      <div class="mtg-date">${fmtDate(m.date)}</div>
+    </div>
+    <div class="mtg-divider"></div>
+    <div class="mtg-body">
+      <div class="mtg-title">${esc(m.title)}</div>
+      <div class="mtg-meta">
+        <span class="mtg-source ${isOl?'ol':'manual'}">${isOl?'📅 Outlook':'Manual'}</span>
+        ${isOl?`<span>${esc(m.organizer||'')}</span>`:
+          `<span><span class="site-dot ${siteDot}"></span>${siteLabel}</span>`}
+        ${loc}
+        ${m.note&&!isOl?`<span>${esc(m.note.slice(0,60))}</span>`:''}
+      </div>
+      ${m.link?`<a class="mtg-link" href="${esc(m.link)}" target="_blank">🔗 Join meeting ↗</a>`:''}
+    </div>
+    ${delBtn}
+  </div>`;
+}
+
+function renderToday(){
+  const all = allMeetings();
+  const todayMtgs = all.filter(m=>m.date===todayStr);
+  const highTasks = state.tasks.filter(t=>!t.done&&(t.due===todayStr||isPast(t.due)||t.pri==='high'))
+    .sort((a,b)=>(['high','med','low'].indexOf(a.pri)-['high','med','low'].indexOf(b.pri)));
+  const workT=highTasks.filter(t=>t.type==='work');
+  const persT=highTasks.filter(t=>t.type==='personal');
+  let h='';
+  if(todayMtgs.length){
+    const olCount=todayMtgs.filter(m=>m.source==='outlook').length;
+    h+=`<div class="sec-label">Today's meetings <span>${todayMtgs.length}</span>${olCount?`<span class="ol-badge">📅 ${olCount} from Outlook</span>`:''}</div>`;
+    h+=todayMtgs.map(mtgCard).join('');
+  }
+  if(workT.length){ h+=`<div class="sec-label">Work priority <span>${workT.length}</span></div>`+workT.map(taskCard).join(''); }
+  if(persT.length){ h+=`<div class="sec-label">Personal priority <span>${persT.length}</span></div>`+persT.map(taskCard).join(''); }
+  if(!h) h=emptyState('📋','All clear!','No priority items for today.');
+  return h;
+}
+
+function renderTasks(){
+  const fEl=`<div class="filter-bar">
+    <button class="chip on" id="tf-all" onclick="taskFilter('all',this)">All open</button>
+    <button class="chip" id="tf-work" onclick="taskFilter('work',this)">💼 Work</button>
+    <button class="chip personal" id="tf-personal" onclick="taskFilter('personal',this)">🌿 Personal</button>
+    <button class="chip" id="tf-high" onclick="taskFilter('high',this)">🔴 High</button>
+    <button class="chip" id="tf-overdue" onclick="taskFilter('overdue',this)">⚠️ Overdue</button>
+    <button class="chip" id="tf-done" onclick="taskFilter('done',this)">✅ Done</button>
+  </div><div id="task-list-inner"></div>`;
+  setTimeout(()=>renderTaskList('all'),0);
+  return fEl;
+}
+
+function renderTaskList(f){
+  let t=[...state.tasks];
+  const p={high:0,med:1,low:2};
+  if(f==='all') t=t.filter(x=>!x.done);
+  else if(f==='work') t=t.filter(x=>!x.done&&x.type==='work');
+  else if(f==='personal') t=t.filter(x=>!x.done&&x.type==='personal');
+  else if(f==='high') t=t.filter(x=>!x.done&&x.pri==='high');
+  else if(f==='overdue') t=t.filter(x=>!x.done&&isPast(x.due));
+  else if(f==='done') t=t.filter(x=>x.done);
+  t.sort((a,b)=>p[a.pri]-p[b.pri]||(a.due||'z').localeCompare(b.due||'z'));
+  const el=document.getElementById('task-list-inner');
+  if(el) el.innerHTML=t.length?t.map(taskCard).join(''):emptyState('✅','No tasks here','Add a task with the + button.');
+}
+
+function taskFilter(f,btn){
+  document.querySelectorAll('.filter-bar .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  renderTaskList(f);
+}
+
+function renderMeetings(){
+  const filter=`<div class="filter-bar">
+    <button class="chip on" id="mf-all" onclick="meetingFilter('all',this)">All</button>
+    <button class="chip" id="mf-ol" onclick="meetingFilter('outlook',this)">📅 Outlook</button>
+    <button class="chip" id="mf-manual" onclick="meetingFilter('manual',this)">Manual</button>
+    <button class="chip" id="mf-today" onclick="meetingFilter('today',this)">Today</button>
+    <button class="chip" id="mf-week" onclick="meetingFilter('week',this)">This week</button>
+  </div><div id="mtg-list-inner"></div>`;
+  setTimeout(()=>renderMeetingList('all'),0);
+  return filter;
+}
+
+function renderMeetingList(f){
+  let m=allMeetings();
+  const weekEnd=new Date(todayDate); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEndStr=weekEnd.toISOString().slice(0,10);
+  if(f==='outlook') m=m.filter(x=>x.source==='outlook');
+  else if(f==='manual') m=m.filter(x=>x.source==='manual'||!x.source);
+  else if(f==='today') m=m.filter(x=>x.date===todayStr);
+  else if(f==='week') m=m.filter(x=>x.date>=todayStr&&x.date<=weekEndStr);
+  const el=document.getElementById('mtg-list-inner');
+  if(!el) return;
+  if(!m.length){ el.innerHTML=emptyState('📅','No meetings','Add one with + or connect Outlook.'); return; }
+  const groups={};
+  m.forEach(x=>{ if(!groups[x.date]) groups[x.date]=[]; groups[x.date].push(x); });
+  let h='';
+  Object.keys(groups).sort().forEach(d=>{
+    const olC=groups[d].filter(x=>x.source==='outlook').length;
+    h+=`<div class="sec-label">${fmtDate(d)||d} <span>${groups[d].length}</span>${olC?`<span class="ol-badge">📅 ${olC} Outlook</span>`:''}</div>`;
+    h+=groups[d].map(mtgCard).join('');
+  });
+  el.innerHTML=h;
+}
+
+function meetingFilter(f,btn){
+  document.querySelectorAll('.filter-bar .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  renderMeetingList(f);
+}
+
+function renderReminders(){
+  const all=[...state.reminders].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(!all.length) return emptyState('⏰','No reminders','Add reminders to get notified.');
+  let h='';
+  all.forEach(r=>{
+    h+=`<div class="reminder-item">
+      <div class="reminder-time" style="${r.date<todayStr?'color:var(--high)':''}">${r.time||'—'}<div style="font-size:9px;color:var(--text3);margin-top:1px">${fmtDate(r.date)||r.date}</div></div>
+      <div class="reminder-body"><div class="reminder-title">${esc(r.title)}</div>${r.repeat!=='none'?`<div class="reminder-sub">↻ ${r.repeat}</div>`:''}</div>
+      <button class="reminder-del" onclick="deleteReminder(${r.id})">✕</button>
+    </div>`;
+  });
+  return h;
+}
+
+function emptyState(icon,title,sub){
+  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-title">${title}</div><div class="empty-sub">${sub}</div></div>`;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function toggleTask(id){ const t=state.tasks.find(x=>x.id===id); if(t){t.done=!t.done;saveState();render();showToast(t.done?'Done ✅':'Reopened');} }
+function deleteTask(id){ state.tasks=state.tasks.filter(x=>x.id!==id); saveState();render();showToast('Task deleted'); }
+function deleteMtg(id){ state.meetings=state.meetings.filter(x=>x.id!=id); saveState();render();showToast('Meeting removed'); }
+function deleteReminder(id){ state.reminders=state.reminders.filter(x=>x.id!==id); saveState();render();showToast('Reminder removed'); }
+
+function setProgress(id, pct){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  t.progress=pct;
+  if(pct===100 && !t.done){ t.done=true; showToast('Task marked complete ✅'); }
+  else if(pct<100 && t.done){ t.done=false; }
+  saveState(); render();
+}
+function cycleProgress(id, e){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  const track=e.currentTarget;
+  const rect=track.getBoundingClientRect();
+  const clickX=e.clientX-rect.left;
+  const raw=Math.round((clickX/rect.width)*100);
+  // snap to nearest 5
+  const pct=Math.min(100,Math.max(0,Math.round(raw/5)*5));
+  setProgress(id, pct);
+}
+
+function switchTab(name,btn){
+  currentTab=name;
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  render();
+}
+function updateBottomNav(name){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  const el=document.getElementById('nav-'+name); if(el) el.classList.add('on');
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>{
+    const map=['today','tasks','meetings','reminders'];
+    if(map[i]===name) t.classList.add('on'); else t.classList.remove('on');
+  });
+}
+function toggleFab(){
+  fabOpen=!fabOpen;
+  document.getElementById('fab-menu').classList.toggle('open',fabOpen);
+  document.getElementById('fab-btn').textContent=fabOpen?'×':'+';
+}
+
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+function openAddTask(type){
+  editTaskId=null;
+  document.getElementById('task-modal-title').textContent='Add task';
+  document.getElementById('t-title').value=''; document.getElementById('t-note').value='';
+  document.getElementById('t-pri').value='med'; document.getElementById('t-due').value=todayStr;
+  document.getElementById('t-remind').value=''; document.getElementById('t-cat').value='SME';
+  setType(type||'work');
+  document.getElementById('task-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('t-title').focus(),100);
+}
+function editTask(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  editTaskId=id; document.getElementById('task-modal-title').textContent='Edit task';
+  setType(t.type);
+  document.getElementById('t-title').value=t.title; document.getElementById('t-note').value=t.note||'';
+  document.getElementById('t-pri').value=t.pri; document.getElementById('t-cat').value=t.cat;
+  document.getElementById('t-due').value=t.due||''; document.getElementById('t-remind').value=t.remind||'';
+  document.getElementById('task-modal').classList.remove('hidden');
+}
+function setType(type){
+  currentType=type;
+  document.getElementById('type-work').className='type-opt work'+(type==='work'?' sel':'');
+  document.getElementById('type-personal').className='type-opt personal'+(type==='personal'?' sel':'');
+}
+function saveTask(){
+  const title=document.getElementById('t-title').value.trim(); if(!title){document.getElementById('t-title').focus();return;}
+  const existing = editTaskId ? state.tasks.find(x=>x.id===editTaskId) : null;
+  const task={id:editTaskId||uid(),type:currentType,title,note:document.getElementById('t-note').value.trim(),
+    pri:document.getElementById('t-pri').value,cat:document.getElementById('t-cat').value,
+    due:document.getElementById('t-due').value,remind:document.getElementById('t-remind').value,
+    done: existing ? existing.done||false : false,
+    progress: existing ? existing.progress||0 : 0};
+  if(editTaskId) state.tasks=state.tasks.map(x=>x.id===editTaskId?task:x); else state.tasks.push(task);
+  saveState(); closeModal('task-modal'); render();
+  showToast(editTaskId?'Task updated':'Task added ✅');
+  if(task.due&&task.remind) scheduleLocalReminder(task);
+}
+
+function openAddMeeting(){
+  document.getElementById('m-title').value=''; document.getElementById('m-date').value=todayStr;
+  document.getElementById('m-time').value='09:00'; document.getElementById('m-site').value='all';
+  document.getElementById('m-link').value=''; document.getElementById('m-note').value='';
+  document.getElementById('mtg-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('m-title').focus(),100);
+}
+function saveMeeting(){
+  const title=document.getElementById('m-title').value.trim(); if(!title) return;
+  state.meetings.push({id:uid(),title,date:document.getElementById('m-date').value,
+    time:document.getElementById('m-time').value,site:document.getElementById('m-site').value,
+    link:document.getElementById('m-link').value.trim(),note:document.getElementById('m-note').value.trim(),source:'manual'});
+  saveState(); closeModal('mtg-modal'); render(); showToast('Meeting added 📅');
+}
+
+function openAddReminder(){
+  document.getElementById('r-title').value=''; document.getElementById('r-date').value=todayStr;
+  document.getElementById('r-time').value='08:00'; document.getElementById('r-repeat').value='none';
+  document.getElementById('rem-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('r-title').focus(),100);
+}
+function saveReminder(){
+  const title=document.getElementById('r-title').value.trim(); if(!title) return;
+  const r={id:uid(),title,date:document.getElementById('r-date').value,time:document.getElementById('r-time').value,repeat:document.getElementById('r-repeat').value};
+  state.reminders.push(r); saveState(); closeModal('rem-modal'); render(); showToast('Reminder set ⏰');
+  scheduleLocalReminder(r);
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function requestNotifPermission(){
+  if(!('Notification' in window)){showToast('Notifications not supported here');return;}
+  if(Notification.permission==='granted'){showToast('Notifications already enabled ✅');return;}
+  Notification.requestPermission().then(p=>{
+    showToast(p==='granted'?'Notifications enabled ✅':'Blocked — enable in browser settings');
+    document.getElementById('notif-btn').classList.toggle('active',p==='granted');
+  });
+}
+function scheduleLocalReminder(item){
+  const d=item.due||item.date; const t=item.remind||item.time||'08:00';
+  if(!d||!t) return;
+  const dt=new Date(d+'T'+t); const ms=dt.getTime()-Date.now();
+  if(ms>0&&ms<7*24*60*60*1000){
+    setTimeout(()=>{
+      if(Notification.permission==='granted') new Notification('MyTaskManager',{body:item.title});
+      else showToast('⏰ '+item.title);
+    },ms);
+  }
+}
+function scheduleReminders(){
+  state.tasks.filter(t=>!t.done&&t.due&&t.remind).forEach(scheduleLocalReminder);
+  state.reminders.forEach(scheduleLocalReminder);
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.add('hidden'),2800);
+}
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+function openAIChat(){
+  const el=document.getElementById('ai-messages');
+  if(!el.children.length) addAIMsg('assistant',"Hi! I'm your AI assistant. I can help you prioritise tasks, plan your day, make decisions, or think through any challenge. What's on your mind?");
+  renderAISuggestions();
+  document.getElementById('ai-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('ai-input').focus(),100);
+}
+function renderAISuggestions(){
+  const over=state.tasks.filter(t=>!t.done&&isPast(t.due)).length;
+  const sugs=["Help me prioritise today",over>0?`I have ${over} overdue tasks — what now?`:"What should I focus on this week?","Help me think through the Appium V3 decision","I'm overwhelmed — help me break this down"];
+  const el=document.getElementById('ai-suggestions');
+  if(el) el.innerHTML=sugs.map(s=>`<button class="ai-quick" onclick="quickAsk('${s.replace(/'/g,"&#39;")}')">${s}</button>`).join('');
+}
+function quickAsk(text){ document.getElementById('ai-input').value=text; sendAI(); }
+function askAIAboutTask(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  openAIChat();
+  setTimeout(()=>{ document.getElementById('ai-input').value=`Help me plan this task: "${t.title}"${t.note?' ('+t.note+')':''}. Priority: ${t.pri}. Due: ${fmtDate(t.due)||'no date'}.`; sendAI(); },300);
+}
+function addAIMsg(role,text){
+  const el=document.getElementById('ai-messages');
+  const isUser=role==='user';
+  const div=document.createElement('div');
+  div.className='ai-msg-wrap'; div.style.alignItems=isUser?'flex-end':'flex-start';
+  div.innerHTML=`<div class="ai-msg-label">${isUser?'You':'AI ✦'}</div><div class="ai-msg-bubble ${role}">${esc(text)}</div>`;
+  el.appendChild(div); el.scrollTop=el.scrollHeight;
+}
+async function sendAI(){
+  const input=document.getElementById('ai-input');
+  const text=input.value.trim(); if(!text) return;
+  input.value=''; addAIMsg('user',text);
+  const think=document.createElement('div');
+  think.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 4px;color:var(--ai);font-size:12px';
+  think.innerHTML='<div style="width:8px;height:8px;border-radius:50%;background:var(--ai);animation:pulse 1s ease-in-out infinite"></div> Thinking...';
+  document.getElementById('ai-messages').appendChild(think);
+  document.getElementById('ai-messages').scrollTop=9999;
+  const openTasks=state.tasks.filter(t=>!t.done).slice(0,10).map(t=>`- [${t.type}/${t.pri}] ${t.title}${t.due?' (due '+fmtDate(t.due)+')':''}`).join('\n');
+  const over=state.tasks.filter(t=>!t.done&&isPast(t.due));
+  const todayMtgs=allMeetings().filter(m=>m.date===todayStr).map(m=>`${m.time} ${m.title}`).join(', ');
+  const sys=`You are a smart personal task manager assistant for a Verification Manager at a medical device company, working across two sites: Barcelona and Switzerland. Today is ${todayStr}.
+
+Open tasks (top 10):
+${openTasks||'none'}
+Overdue: ${over.length} (${over.map(t=>t.title).slice(0,3).join(', ')})
+Today's meetings: ${todayMtgs||'none'}
+Outlook connected: ${state.outlookUser?'Yes, '+state.outlookUser:'No'}
+
+Be concise, practical, and direct. Use numbered steps when recommending actions.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-allow-browser':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,
+        messages:[...state.aiHistory.slice(-6),{role:'user',content:text}]})});
+    const data=await resp.json();
+    think.remove();
+    const reply=data.content?.[0]?.text||'Sorry, no response. Please try again.';
+    addAIMsg('assistant',reply);
+    state.aiHistory.push({role:'user',content:text},{role:'assistant',content:reply});
+    if(state.aiHistory.length>20) state.aiHistory=state.aiHistory.slice(-16);
+    saveState();
+  }catch(e){ think.remove(); addAIMsg('assistant','Connection issue. Please check your internet.'); }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadState();
+if(state.outlookClientId){ initMsal(state.outlookClientId); }
+updateBannerState();
+render();
+if(Notification.permission==='granted') document.getElementById('notif-btn').classList.add('active');
+updateSettingsBtn();
+// Auto-sync Outlook on load if connected
+if(state.outlookClientId && msalInstance && state.outlookUser){
+  setTimeout(fetchOutlookEvents, 1500);
+}
+
+function openSettings(){
+  const k = state.anthropicKey||'';
+  document.getElementById('s-apikey').value = k ? k.slice(0,8)+'...' : '';
+  document.getElementById('s-appname').value = state.appName||'MyTaskManager';
+  const status = document.getElementById('s-key-status');
+  if(k){ status.textContent='✓ API key saved ('+k.slice(0,12)+'...)'; status.style.color='var(--personal)'; }
+  else { status.textContent='No API key set — AI features disabled'; status.style.color='var(--high)'; }
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+function saveSettings(){
+  const raw = document.getElementById('s-apikey').value.trim();
+  if(raw && !raw.includes('...')) state.anthropicKey = raw;
+  const name = document.getElementById('s-appname').value.trim();
+  if(name) state.appName = name;
+  saveState();
+  closeModal('settings-modal');
+  showToast('Settings saved ✓');
+  updateSettingsBtn();
+}
+function updateSettingsBtn(){
+  const btn = document.getElementById('settings-btn');
+  if(btn) btn.style.color = state.anthropicKey ? 'var(--personal)' : 'var(--text2)';
+}
+function clearAllData(){
+  if(!confirm('Delete ALL tasks, meetings, reminders and settings? This cannot be undone.')) return;
+  localStorage.removeItem('mytm_v2');
+  location.reload();
+}
+
+</script>
+
+<!-- MODAL: Settings -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">⚙️ Settings</div>
+    <div class="modal-body">
+      <div class="info-box" style="background:var(--ai-bg);border:1px solid rgba(167,139,250,.3);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px">
+        <b style="color:var(--ai)">Anthropic API key required for AI features.</b><br>
+        Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--ai)">console.anthropic.com</a> → API Keys → Create key.<br>
+        Your key is stored only in your browser's localStorage — never sent anywhere except directly to Anthropic.
+      </div>
+      <div class="field">
+        <label>Anthropic API Key</label>
+        <input id="s-apikey" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+      </div>
+      <div id="s-key-status" style="font-size:12px;margin-top:-8px;margin-bottom:10px;color:var(--text3)"></div>
+      <div class="field">
+        <label>App display name</label>
+        <input id="s-appname" type="text" placeholder="MyTaskManager">
+      </div>
+      <div class="field">
+        <label>Clear all data</label>
+        <button onclick="clearAllData()" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid rgba(244,63,94,.35);background:var(--high-bg);color:var(--high);font-size:13px;cursor:pointer">Reset app — delete all tasks, meetings &amp; settings</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('settings-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveSettings()">Save settings</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
