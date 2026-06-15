@@ -497,7 +497,8 @@ const todayDate = new Date();
 const todayStr = todayDate.toISOString().slice(0,10);
 document.getElementById('today-sub').textContent = todayDate.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
 
-const SK = API_BASE = window.location.origin;
+const SK = 'mytm_v2';
+const API_BASE = window.location.origin;
 let state = {tasks:[], meetings:[], reminders:[], aiHistory:[], outlookClientId:'', outlookDays:14, outlookMeetings:[], outlookUser:''};
 let currentTab = 'today';
 let editTaskId = null;
