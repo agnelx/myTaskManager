@@ -1,5 +1,18 @@
 {
-  "tasks": [],
+  "tasks": [
+    {
+      "id": 1210,
+      "type": "work",
+      "title": "test",
+      "note": "",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-06-15",
+      "remind": "",
+      "done": false,
+      "progress": 0
+    }
+  ],
   "meetings": [],
   "reminders": [],
   "aiHistory": []
