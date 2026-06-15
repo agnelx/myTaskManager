@@ -35,6 +35,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 331,
+      "type": "work",
+      "title": "Prepare presentation on AI integration",
+      "note": "Keep in mind the current agent offers service to test the configuration setup .how many Agent do we need to integrate the config test ?Other Ai agents ? Also check with other teams benefits of this ?",
+      "pri": "high",
+      "cat": "SME",
+      "due": "2026-06-19",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
