@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#0f172a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'>M</text></svg>">
 <title>MyTaskManager</title>
 <style>
 :root{
@@ -1182,11 +1184,11 @@ Be concise, practical, and direct. Use numbered steps when recommending actions.
       const msg = data.error?.message || resp.statusText || 'Unknown error';
       const type = data.error?.type || '';
       if(code===401||type==='authentication_error'){
-        addAIMsg('assistant','❌ Authentication failed (401): '+msg+'\\n\\nYour API key may be invalid or expired. Open ⚙️ Settings, re-enter it, and Save.');
+        addAIMsg('assistant','❌ Authentication failed (401): '+msg+'\n\nYour API key may be invalid or expired. Open ⚙️ Settings, re-enter it, and Save.');
       } else if(code===403){
-        addAIMsg('assistant','❌ Forbidden (403): '+msg+'\\n\\nThis can happen if the API key doesn\\'t have access to model claude-sonnet-4-6, or billing isn\\'t set up on your Anthropic account.');
+        addAIMsg('assistant','❌ Forbidden (403): '+msg+'\n\nThis can happen if the API key doesn\'t have access to model claude-sonnet-4-6, or billing isn\'t set up on your Anthropic account.');
       } else if(code===429){
-        addAIMsg('assistant','⏳ Rate limited (429): '+msg+'\\n\\nWait a moment and try again, or check usage limits at console.anthropic.com.');
+        addAIMsg('assistant','⏳ Rate limited (429): '+msg+'\n\nWait a moment and try again, or check usage limits at console.anthropic.com.');
       } else if(code===0||!code){
         addAIMsg('assistant','❌ Request blocked (CORS/network). This usually means the page is being opened via file:// instead of http(s)://, or a browser extension/firewall is blocking api.anthropic.com.');
       } else {
@@ -1201,7 +1203,7 @@ Be concise, practical, and direct. Use numbered steps when recommending actions.
     saveState();
   }catch(e){
     think.remove();
-    addAIMsg('assistant','❌ Network error: '+e.message+'\\n\\nMake sure: 1) the page URL starts with http:// or https:// (not file://), 2) you have internet access, 3) no extension is blocking api.anthropic.com.');
+    addAIMsg('assistant','❌ Network error: '+e.message+'\n\nMake sure: 1) the page URL starts with http:// or https:// (not file://), 2) you have internet access, 3) no extension is blocking api.anthropic.com.');
   }
 }
 
