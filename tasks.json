@@ -47,6 +47,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 657,
+      "type": "work",
+      "title": "Check monthly progress meeting",
+      "note": "All reporters send monthly progress meeting",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-06-25",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
