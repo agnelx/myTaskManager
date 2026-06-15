@@ -1158,22 +1158,51 @@ Outlook connected: ${state.outlookUser?'Yes, '+state.outlookUser:'No'}
 
 Be concise, practical, and direct. Use numbered steps when recommending actions.`;
   try{
+    const apiKey = (state.anthropicKey||'').trim();
+    if(!apiKey){
+      think.remove();
+      addAIMsg('assistant','⚠️ No API key found. Open ⚙️ Settings and enter your Anthropic API key (starts with sk-ant-...), then tap Save.');
+      return;
+    }
     const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{
         'Content-Type':'application/json',
+        'x-api-key': apiKey,
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-allow-browser':'true'
       },
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,
         messages:[...state.aiHistory.slice(-6),{role:'user',content:text}]})});
-    const data=await resp.json();
+    let data;
+    try{ data = await resp.json(); }
+    catch(parseErr){ think.remove(); addAIMsg('assistant','Could not read API response (status '+resp.status+'). The request may have been blocked before reaching Anthropic.'); return; }
     think.remove();
+    if(!resp.ok || data.error){
+      const code = resp.status;
+      const msg = data.error?.message || resp.statusText || 'Unknown error';
+      const type = data.error?.type || '';
+      if(code===401||type==='authentication_error'){
+        addAIMsg('assistant','❌ Authentication failed (401): '+msg+'\\n\\nYour API key may be invalid or expired. Open ⚙️ Settings, re-enter it, and Save.');
+      } else if(code===403){
+        addAIMsg('assistant','❌ Forbidden (403): '+msg+'\\n\\nThis can happen if the API key doesn\\'t have access to model claude-sonnet-4-6, or billing isn\\'t set up on your Anthropic account.');
+      } else if(code===429){
+        addAIMsg('assistant','⏳ Rate limited (429): '+msg+'\\n\\nWait a moment and try again, or check usage limits at console.anthropic.com.');
+      } else if(code===0||!code){
+        addAIMsg('assistant','❌ Request blocked (CORS/network). This usually means the page is being opened via file:// instead of http(s)://, or a browser extension/firewall is blocking api.anthropic.com.');
+      } else {
+        addAIMsg('assistant','❌ API error '+code+': '+msg);
+      }
+      return;
+    }
     const reply=data.content?.[0]?.text||'Sorry, no response. Please try again.';
     addAIMsg('assistant',reply);
     state.aiHistory.push({role:'user',content:text},{role:'assistant',content:reply});
     if(state.aiHistory.length>20) state.aiHistory=state.aiHistory.slice(-16);
     saveState();
-  }catch(e){ think.remove(); addAIMsg('assistant','Connection issue. Please check your internet.'); }
+  }catch(e){
+    think.remove();
+    addAIMsg('assistant','❌ Network error: '+e.message+'\\n\\nMake sure: 1) the page URL starts with http:// or https:// (not file://), 2) you have internet access, 3) no extension is blocking api.anthropic.com.');
+  }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
