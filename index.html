@@ -497,7 +497,7 @@ const todayDate = new Date();
 const todayStr = todayDate.toISOString().slice(0,10);
 document.getElementById('today-sub').textContent = todayDate.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
 
-const SK = 'mytm_v2';
+const SK = API_BASE = window.location.origin;
 let state = {tasks:[], meetings:[], reminders:[], aiHistory:[], outlookClientId:'', outlookDays:14, outlookMeetings:[], outlookUser:''};
 let currentTab = 'today';
 let editTaskId = null;
@@ -506,32 +506,44 @@ let fabOpen = false;
 let msalInstance = null;
 let outlookSyncing = false;
 
-function loadState(){
-  let loaded = false;
-  try{
-    const s=localStorage.getItem(SK);
-    if(s){ state=Object.assign(state,JSON.parse(s)); loaded=true; }
-  }catch(e){ console.error('localStorage read error:',e); }
-  if(!state.tasks) state.tasks=[];
-  if(!state.meetings) state.meetings=[];
-  if(!state.reminders) state.reminders=[];
-  if(!state.aiHistory) state.aiHistory=[];
-  if(!state.outlookMeetings) state.outlookMeetings=[];
-  // Only seed on the very first run ever (no saved state exists at all).
-  // Once initialized=true is saved, never re-seed even if lists are emptied.
-  if(!loaded || !state.initialized){
-    seedDefaults();
+async function loadState(){
+  try {
+    const res = await fetch(`${API_BASE}/api/tasks`);
+    if (!res.ok) throw new Error('Could not load tasks from GitHub');
+    const data = await res.json();
+
+    state.tasks = data.tasks || [];
+    state.meetings = data.meetings || [];
+    state.reminders = data.reminders || [];
+    state.aiHistory = data.aiHistory || [];
     state.initialized = true;
-    saveState();
+  } catch (e) {
+    console.error(e);
+    showToast('Using local data — GitHub sync failed');
+    const s = localStorage.getItem(SK);
+    if (s) state = Object.assign(state, JSON.parse(s));
   }
 }
-function saveState(){
-  try{
-    localStorage.setItem(SK,JSON.stringify(state));
+async function saveState(){
+  try {
+    localStorage.setItem(SK, JSON.stringify(state));
+
+    const res = await fetch(`${API_BASE}/api/tasks`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        tasks: state.tasks,
+        meetings: state.meetings,
+        reminders: state.reminders,
+        aiHistory: state.aiHistory
+      })
+    });
+
+    if (!res.ok) throw new Error('GitHub save failed');
     return true;
-  }catch(e){
-    console.error('localStorage write error:',e);
-    showToast('⚠️ Could not save — storage blocked by browser');
+  } catch (e) {
+    console.error(e);
+    showToast('Saved locally — GitHub update failed');
     return false;
   }
 }
@@ -1220,10 +1232,17 @@ if(!checkStorageHealth()){
     t.onclick=()=>t.classList.add('hidden');
   }, 600);
 }
-loadState();
-if(state.outlookClientId){ initMsal(state.outlookClientId); }
-updateBannerState();
-render();
+loadState().then(() => {
+  if(state.outlookClientId){ initMsal(state.outlookClientId); }
+  updateBannerState();
+  render();
+  if(Notification.permission==='granted') document.getElementById('notif-btn').classList.add('active');
+  updateSettingsBtn();
+
+  if(state.outlookClientId && msalInstance && state.outlookUser){
+    setTimeout(fetchOutlookEvents, 1500);
+  }
+});
 if(Notification.permission==='granted') document.getElementById('notif-btn').classList.add('active');
 updateSettingsBtn();
 // Auto-sync Outlook on load if connected
