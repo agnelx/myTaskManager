@@ -59,6 +59,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 866,
+      "type": "work",
+      "title": "Roy Goals and objectives",
+      "note": "",
+      "pri": "high",
+      "cat": "SME",
+      "due": "2026-06-25",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
