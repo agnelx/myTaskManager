@@ -83,6 +83,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 598,
+      "type": "personal",
+      "title": "Update linked in",
+      "note": "",
+      "pri": "med",
+      "cat": "Personal",
+      "due": "2026-06-15",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
