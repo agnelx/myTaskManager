@@ -11,6 +11,18 @@
       "remind": "05:44",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 590,
+      "type": "personal",
+      "title": "Heating offer confirmation",
+      "note": "",
+      "pri": "med",
+      "cat": "Home",
+      "due": "2026-06-30",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
