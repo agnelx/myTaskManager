@@ -95,6 +95,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 534,
+      "type": "personal",
+      "title": "Finish new avatar letter",
+      "note": "",
+      "pri": "high",
+      "cat": "SME",
+      "due": "2026-06-17",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
