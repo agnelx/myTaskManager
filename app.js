@@ -7,6 +7,8 @@ const SK = 'mytm_v2';
 const API_BASE = window.location.origin;
 let state = {tasks:[], meetings:[], reminders:[], aiHistory:[], outlookClientId:'', outlookDays:14, outlookMeetings:[], outlookUser:''};
 let currentTab = 'today';
+let currentTaskFilter = 'all';
+let currentMtgFilter = 'all';
 let editTaskId = null;
 let currentType = 'work';
 let fabOpen = false;
@@ -333,8 +335,9 @@ function taskCard(t){
           <span class="prog-label">Progress</span>
           <span class="prog-pct">${pct}%</span>
         </div>
-        <div class="prog-track" onclick="cycleProgress(${t.id},event)" title="Click to update progress">
+        <div class="prog-track" data-task-id="${t.id}" onmousedown="progressDragStart(${t.id},event)" ontouchstart="progressDragStart(${t.id},event)" title="Drag or click to update progress">
           <div class="prog-fill ${pClass}" style="width:${pct}%"></div>
+          <div class="prog-thumb" style="left:${pct}%"></div>
         </div>
         <div class="prog-steps">${stepsHtml}</div>
       </div>
@@ -396,14 +399,14 @@ function renderToday(){
 
 function renderTasks(){
   const fEl=`<div class="filter-bar">
-    <button class="chip on" id="tf-all" onclick="taskFilter('all',this)">All open</button>
-    <button class="chip" id="tf-work" onclick="taskFilter('work',this)">💼 Work</button>
-    <button class="chip personal" id="tf-personal" onclick="taskFilter('personal',this)">🌿 Personal</button>
-    <button class="chip" id="tf-high" onclick="taskFilter('high',this)">🔴 High</button>
-    <button class="chip" id="tf-overdue" onclick="taskFilter('overdue',this)">⚠️ Overdue</button>
-    <button class="chip" id="tf-done" onclick="taskFilter('done',this)">✅ Done</button>
+    <button class="chip${currentTaskFilter==='all'?' on':''}" id="tf-all" onclick="taskFilter('all',this)">All open</button>
+    <button class="chip${currentTaskFilter==='work'?' on':''}" id="tf-work" onclick="taskFilter('work',this)">💼 Work</button>
+    <button class="chip personal${currentTaskFilter==='personal'?' on':''}" id="tf-personal" onclick="taskFilter('personal',this)">🌿 Personal</button>
+    <button class="chip${currentTaskFilter==='high'?' on':''}" id="tf-high" onclick="taskFilter('high',this)">🔴 High</button>
+    <button class="chip${currentTaskFilter==='overdue'?' on':''}" id="tf-overdue" onclick="taskFilter('overdue',this)">⚠️ Overdue</button>
+    <button class="chip${currentTaskFilter==='done'?' on':''}" id="tf-done" onclick="taskFilter('done',this)">✅ Done</button>
   </div><div id="task-list-inner"></div>`;
-  setTimeout(()=>renderTaskList('all'),0);
+  setTimeout(()=>renderTaskList(currentTaskFilter),0);
   return fEl;
 }
 
@@ -422,6 +425,7 @@ function renderTaskList(f){
 }
 
 function taskFilter(f,btn){
+  currentTaskFilter = f;
   document.querySelectorAll('.filter-bar .chip').forEach(c=>c.classList.remove('on'));
   btn.classList.add('on');
   renderTaskList(f);
@@ -429,13 +433,13 @@ function taskFilter(f,btn){
 
 function renderMeetings(){
   const filter=`<div class="filter-bar">
-    <button class="chip on" id="mf-all" onclick="meetingFilter('all',this)">All</button>
-    <button class="chip" id="mf-ol" onclick="meetingFilter('outlook',this)">📅 Outlook</button>
-    <button class="chip" id="mf-manual" onclick="meetingFilter('manual',this)">Manual</button>
-    <button class="chip" id="mf-today" onclick="meetingFilter('today',this)">Today</button>
-    <button class="chip" id="mf-week" onclick="meetingFilter('week',this)">This week</button>
+    <button class="chip${currentMtgFilter==='all'?' on':''}" id="mf-all" onclick="meetingFilter('all',this)">All</button>
+    <button class="chip${currentMtgFilter==='outlook'?' on':''}" id="mf-ol" onclick="meetingFilter('outlook',this)">📅 Outlook</button>
+    <button class="chip${currentMtgFilter==='manual'?' on':''}" id="mf-manual" onclick="meetingFilter('manual',this)">Manual</button>
+    <button class="chip${currentMtgFilter==='today'?' on':''}" id="mf-today" onclick="meetingFilter('today',this)">Today</button>
+    <button class="chip${currentMtgFilter==='week'?' on':''}" id="mf-week" onclick="meetingFilter('week',this)">This week</button>
   </div><div id="mtg-list-inner"></div>`;
-  setTimeout(()=>renderMeetingList('all'),0);
+  setTimeout(()=>renderMeetingList(currentMtgFilter),0);
   return filter;
 }
 
@@ -462,6 +466,7 @@ function renderMeetingList(f){
 }
 
 function meetingFilter(f,btn){
+  currentMtgFilter = f;
   document.querySelectorAll('.filter-bar .chip').forEach(c=>c.classList.remove('on'));
   btn.classList.add('on');
   renderMeetingList(f);
@@ -491,12 +496,76 @@ function deleteTask(id){ state.tasks=state.tasks.filter(x=>x.id!==id); saveState
 function deleteMtg(id){ state.meetings=state.meetings.filter(x=>x.id!=id); saveState();render();showToast('Meeting removed'); }
 function deleteReminder(id){ state.reminders=state.reminders.filter(x=>x.id!==id); saveState();render();showToast('Reminder removed'); }
 
-function setProgress(id, pct){
+function setProgress(id, pct, skipRender){
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
   t.progress=pct;
-  if(pct===100 && !t.done){ t.done=true; showToast('Task marked complete ✅'); }
+  if(pct===100 && !t.done){ t.done=true; if(!skipRender) showToast('Task marked complete ✅'); }
   else if(pct<100 && t.done){ t.done=false; }
-  saveState(); render();
+  saveState();
+  if(!skipRender) render();
+}
+
+// Live-update a single task's progress bar DOM without a full re-render (used during drag)
+function paintProgress(id, pct){
+  const track = document.querySelector(`.prog-track[data-task-id="${id}"]`);
+  if(!track) return;
+  const wrap = track.closest('.prog-wrap');
+  const fill = track.querySelector('.prog-fill');
+  const thumb = track.querySelector('.prog-thumb');
+  const pctLabel = wrap?.querySelector('.prog-pct');
+  const steps = wrap?.querySelectorAll('.prog-step');
+  if(fill){ fill.style.width = pct+'%'; fill.className = 'prog-fill ' + progColor(pct, pct===100); }
+  if(thumb){ thumb.style.left = pct+'%'; }
+  if(pctLabel) pctLabel.textContent = pct+'%';
+  if(steps){
+    const stepVals=[0,25,50,75,100];
+    steps.forEach((s,i)=>{ s.classList.toggle('active', (pct>=stepVals[i]&&pct>0)||pct===100); });
+  }
+}
+
+function pctFromEvent(track, clientX){
+  const rect=track.getBoundingClientRect();
+  const x=clientX-rect.left;
+  const raw=Math.round((x/rect.width)*100);
+  return Math.min(100,Math.max(0,Math.round(raw/5)*5));
+}
+
+let dragState = null; // {id, track}
+
+function progressDragStart(id, e){
+  e.preventDefault();
+  const track = e.currentTarget;
+  dragState = { id, track };
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const pct = pctFromEvent(track, clientX);
+  paintProgress(id, pct);
+  track.classList.add('dragging');
+  document.addEventListener('mousemove', progressDragMove);
+  document.addEventListener('touchmove', progressDragMove, {passive:false});
+  document.addEventListener('mouseup', progressDragEnd);
+  document.addEventListener('touchend', progressDragEnd);
+}
+
+function progressDragMove(e){
+  if(!dragState) return;
+  e.preventDefault();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const pct = pctFromEvent(dragState.track, clientX);
+  paintProgress(dragState.id, pct);
+}
+
+function progressDragEnd(e){
+  if(!dragState) return;
+  const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+  const pct = pctFromEvent(dragState.track, clientX);
+  dragState.track.classList.remove('dragging');
+  document.removeEventListener('mousemove', progressDragMove);
+  document.removeEventListener('touchmove', progressDragMove);
+  document.removeEventListener('mouseup', progressDragEnd);
+  document.removeEventListener('touchend', progressDragEnd);
+  const id = dragState.id;
+  dragState = null;
+  setProgress(id, pct); // full save + re-render once, on release
 }
 function cycleProgress(id, e){
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
