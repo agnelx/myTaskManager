@@ -107,6 +107,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 932,
+      "type": "work",
+      "title": "Job fest description",
+      "note": "",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-06-25",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
