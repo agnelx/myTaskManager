@@ -155,6 +155,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 395,
+      "type": "work",
+      "title": "myPatch - DVP new version",
+      "note": "Redife and start rerelease",
+      "pri": "high",
+      "cat": "SME",
+      "due": "2026-06-19",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
