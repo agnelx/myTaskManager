@@ -203,6 +203,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 429,
+      "type": "work",
+      "title": "Employee Survey fill the details",
+      "note": "https://miro.com/app/board/uXjVHVJXSw4=/",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-06-24",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
