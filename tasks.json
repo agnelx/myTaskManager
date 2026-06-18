@@ -239,6 +239,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 403,
+      "type": "work",
+      "title": "Verification Team structure",
+      "note": "Prepare visibility on the full verification team in mylife",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-06-30",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
