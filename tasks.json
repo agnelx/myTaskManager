@@ -227,6 +227,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 857,
+      "type": "work",
+      "title": "MS planner update for myPatch",
+      "note": "Discuss with Dominic  and Daniel to identify the dependency / and how to approach the verification camping.",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-06-30",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
