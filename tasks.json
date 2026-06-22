@@ -105,8 +105,8 @@
       "cat": "SME",
       "due": "2026-06-17",
       "remind": "",
-      "done": false,
-      "progress": 55
+      "done": true,
+      "progress": 100
     },
     {
       "id": 932,
