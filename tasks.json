@@ -46,7 +46,7 @@
       "due": "2026-06-19",
       "remind": "",
       "done": false,
-      "progress": 40
+      "progress": 60
     },
     {
       "id": 657,
@@ -260,18 +260,6 @@
       "pri": "med",
       "cat": "SME",
       "due": "2026-06-24",
-      "remind": "",
-      "done": false,
-      "progress": 0
-    },
-    {
-      "id": 1004,
-      "type": "work",
-      "title": "Support team sync up for Precommercial test activities",
-      "note": "To prepare the template for the sync up with support team in one-note",
-      "pri": "med",
-      "cat": "Manager",
-      "due": "2026-07-07",
       "remind": "",
       "done": false,
       "progress": 0
