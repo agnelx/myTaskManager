@@ -263,6 +263,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 1039,
+      "type": "work",
+      "title": "QA agreement",
+      "note": "QA with CamdiApp , prepare the verification points \nOrganise monthly connect with Andrea's K",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-06-30",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
