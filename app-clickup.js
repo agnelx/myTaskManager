@@ -251,12 +251,15 @@ function updateBannerState() {
 }
 
 // ─── UI VIEW SWITCHING ────────────────────────────────────────────────────
-function switchView(view) {
+function switchView(view, srcElement) {
   currentView = view;
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(view + '-view').classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (event && event.target) event.target.classList.add('active');
+  
+  if (srcElement) {
+    srcElement.classList.add('active');
+  }
 
   const titles = { dashboard: 'Dashboard', list: 'List View', board: 'Board View', calendar: 'Calendar' };
   document.getElementById('view-title').textContent = titles[view];
@@ -731,18 +734,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   updateBannerState();
-  switchView('dashboard');
+  
+  // Initialize the dashboard view without event object
+  switchView('dashboard', null);
 
   if (Notification.permission === 'granted') {
     const notifBtn = document.querySelector('[title="Enable reminders"]');
     if (notifBtn) notifBtn.style.color = 'var(--primary)';
   }
 
-  if (state.outlookClientId && msalInstance && state.outlookUser) {
-    setTimeout(fetchOutlookEvents, 1500);
-  }
-
-  // Sync Outlook on load if connected
   if (state.outlookClientId && msalInstance && state.outlookUser) {
     setTimeout(fetchOutlookEvents, 2000);
   }
