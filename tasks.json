@@ -57,8 +57,8 @@
       "cat": "Manager",
       "due": "2026-06-25",
       "remind": "",
-      "done": true,
-      "progress": 100
+      "done": false,
+      "progress": 70
     },
     {
       "id": 866,
