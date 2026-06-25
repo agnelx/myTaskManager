@@ -256,7 +256,7 @@ function switchView(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(view + '-view').classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  event.target.classList.add('active');
+  if (event && event.target) event.target.classList.add('active');
 
   const titles = { dashboard: 'Dashboard', list: 'List View', board: 'Board View', calendar: 'Calendar' };
   document.getElementById('view-title').textContent = titles[view];
@@ -274,11 +274,13 @@ function applyFilters() {
   currentFilters.personal = document.getElementById('filter-personal').checked;
   currentFilters.high = document.getElementById('filter-high').checked;
   currentFilters.overdue = document.getElementById('filter-overdue').checked;
+  console.log('Filters applied:', currentFilters);
   render();
 }
 
 function applySort() {
   currentSort = document.getElementById('sort-by').value;
+  console.log('Sort applied:', currentSort);
   render();
 }
 
@@ -293,20 +295,25 @@ function filterTasks() {
 function getFilteredTasks() {
   let tasks = [...state.tasks];
 
-  if (currentFilters.work || currentFilters.personal) {
+  // If no filters are selected, show all tasks
+  const hasActiveFilters = currentFilters.work || currentFilters.personal || currentFilters.high || currentFilters.overdue;
+
+  if (hasActiveFilters) {
     tasks = tasks.filter(t => {
-      if (currentFilters.work && t.type === 'work') return true;
-      if (currentFilters.personal && t.type === 'personal') return true;
-      return false;
+      // Type filters (work/personal)
+      if (currentFilters.work || currentFilters.personal) {
+        if (currentFilters.work && t.type !== 'work') return false;
+        if (currentFilters.personal && t.type !== 'personal') return false;
+      }
+
+      // Priority filter
+      if (currentFilters.high && t.priority !== 'high') return false;
+
+      // Overdue filter
+      if (currentFilters.overdue && (!(!t.done && t.due && t.due < todayStr))) return false;
+
+      return true;
     });
-  }
-
-  if (currentFilters.high) {
-    tasks = tasks.filter(t => t.priority === 'high');
-  }
-
-  if (currentFilters.overdue) {
-    tasks = tasks.filter(t => !t.done && t.due && t.due < todayStr);
   }
 
   // Apply sort
@@ -406,9 +413,10 @@ function taskCardHtml(t) {
 }
 
 function renderDashboard() {
-  const highPri = state.tasks.filter(t => !t.done && t.priority === 'high').slice(0, 5);
-  const today = state.tasks.filter(t => !t.done && t.due === todayStr).slice(0, 5);
-  const overdue = state.tasks.filter(t => !t.done && t.due && t.due < todayStr).slice(0, 5);
+  const filtered = getFilteredTasks();
+  const highPri = filtered.filter(t => !t.done && t.priority === 'high').slice(0, 5);
+  const today = filtered.filter(t => !t.done && t.due === todayStr).slice(0, 5);
+  const overdue = filtered.filter(t => !t.done && t.due && t.due < todayStr).slice(0, 5);
 
   document.getElementById('dashboard-high').innerHTML = highPri.map(taskCardHtml).join('') || '<div style="color:var(--text-tertiary);font-size:12px">No high priority tasks</div>';
   document.getElementById('dashboard-today').innerHTML = today.map(taskCardHtml).join('') || '<div style="color:var(--text-tertiary);font-size:12px">No tasks due today</div>';
@@ -450,7 +458,7 @@ function renderCalendarView() {
   document.getElementById('calendar-content').innerHTML = '<p style="color:var(--text-tertiary)">Calendar view coming soon</p>';
 }
 
-// ─── TASK ACTIONS ─────────────────────────────────────────────────────────
+// ─── TASK ACTIONS ────────────────────────────────────────────────────────
 function toggleTask(id) {
   const t = state.tasks.find(x => x.id === id);
   if (t) {
@@ -710,7 +718,7 @@ function showToast(msg) {
   toastT = setTimeout(() => el.classList.add('hidden'), 2800);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   await loadState();
 
@@ -723,14 +731,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   updateBannerState();
-  render();
   switchView('dashboard');
 
   if (Notification.permission === 'granted') {
-    document.querySelector('[title="Enable reminders"]').style.color = 'var(--primary)';
+    const notifBtn = document.querySelector('[title="Enable reminders"]');
+    if (notifBtn) notifBtn.style.color = 'var(--primary)';
   }
 
   if (state.outlookClientId && msalInstance && state.outlookUser) {
     setTimeout(fetchOutlookEvents, 1500);
+  }
+
+  // Sync Outlook on load if connected
+  if (state.outlookClientId && msalInstance && state.outlookUser) {
+    setTimeout(fetchOutlookEvents, 2000);
   }
 });
