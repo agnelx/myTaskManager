@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#7c3aed">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c3aed'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-weight='bold'>M</text></svg>">
+<title>MyTaskManager - ClickUp UI</title>
+<link rel="stylesheet" href="style-clickup.css">
+</head>
+<body>
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">MyTaskManager</div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="switchView('dashboard')">📊 Dashboard</button>
+    <button class="nav-item" onclick="switchView('list')">📋 List View</button>
+    <button class="nav-item" onclick="switchView('board')">📌 Board View</button>
+    <button class="nav-item" onclick="switchView('calendar')">📅 Calendar</button>
+  </nav>
+
+  <div class="sidebar-section">
+    <div class="section-title">Filters</div>
+    <div class="filter-group">
+      <label class="filter-label">
+        <input type="checkbox" id="filter-work" onchange="applyFilters()"> 💼 Work
+      </label>
+      <label class="filter-label">
+        <input type="checkbox" id="filter-personal" onchange="applyFilters()"> 🌿 Personal
+      </label>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">
+        <input type="checkbox" id="filter-high" onchange="applyFilters()"> 🔴 High Priority
+      </label>
+      <label class="filter-label">
+        <input type="checkbox" id="filter-overdue" onchange="applyFilters()"> ⚠️ Overdue
+      </label>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">Sort by</div>
+    <select id="sort-by" onchange="applySort()" class="sidebar-select">
+      <option value="due-asc">Due date (earliest)</option>
+      <option value="due-desc">Due date (latest)</option>
+      <option value="priority">Priority</option>
+      <option value="created">Recently added</option>
+    </select>
+  </div>
+
+  <div class="sidebar-actions">
+    <button class="sidebar-btn primary" onclick="openAddTask()">+ New Task</button>
+    <button class="sidebar-btn" onclick="openSettings()">⚙️ Settings</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <button class="menu-btn mobile-only" onclick="toggleSidebar()">☰</button>
+      <h1 class="header-title" id="view-title">Dashboard</h1>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="requestNotifPermission()" title="Enable reminders">🔔</button>
+      <button class="icon-btn" onclick="handleOutlookIconClick()" title="Outlook sync">📅</button>
+      <button class="icon-btn ai-btn" onclick="openAIChat()" title="AI assistant">✦</button>
+    </div>
+  </header>
+
+  <!-- OUTLOOK BANNER -->
+  <div id="outlook-banner" class="outlook-banner setup">
+    <div class="ob-dot" id="ob-dot"></div>
+    <div class="ob-text" id="ob-text"><b>Outlook not connected.</b> Sync your calendar to see meetings automatically.</div>
+    <button class="ob-btn primary" id="ob-action-btn" onclick="openOutlookSetup()">Connect</button>
+  </div>
+
+  <!-- CONTENT AREA -->
+  <div class="content" id="main-content">
+    <!-- Dashboard View (default) -->
+    <div id="dashboard-view" class="view active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-content">
+            <div class="stat-label">Open Tasks</div>
+            <div class="stat-value" id="d-open">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-content">
+            <div class="stat-label">Due Today</div>
+            <div class="stat-value" id="d-today">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-content">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value danger" id="d-overdue">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <div class="stat-label">Completed</div>
+            <div class="stat-value" id="d-done">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-section">
+          <h3 class="section-header">🔴 High Priority</h3>
+          <div id="dashboard-high" class="task-list"></div>
+        </div>
+        <div class="dashboard-section">
+          <h3 class="section-header">⏰ Due Today</h3>
+          <div id="dashboard-today" class="task-list"></div>
+        </div>
+        <div class="dashboard-section">
+          <h3 class="section-header">⚠️ Overdue</h3>
+          <div id="dashboard-overdue" class="task-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div id="list-view" class="view">
+      <div class="view-toolbar">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search tasks..." onkeyup="filterTasks()">
+        </div>
+        <div class="view-controls">
+          <button class="view-btn" onclick="toggleViewCompact()">Compact</button>
+          <button class="view-btn active" onclick="toggleViewDetailed()">Detailed</button>
+        </div>
+      </div>
+      <div id="list-content" class="task-list-view"></div>
+    </div>
+
+    <!-- Board View (Kanban) -->
+    <div id="board-view" class="view">
+      <div class="kanban-board">
+        <div class="kanban-column" data-status="todo">
+          <div class="column-header">
+            <h3>To Do</h3>
+            <span class="column-count" id="count-todo">0</span>
+          </div>
+          <div class="column-tasks" id="column-todo"></div>
+          <button class="add-task-btn" onclick="openAddTaskWithStatus('todo')">+ Add Task</button>
+        </div>
+        <div class="kanban-column" data-status="in-progress">
+          <div class="column-header">
+            <h3>In Progress</h3>
+            <span class="column-count" id="count-in-progress">0</span>
+          </div>
+          <div class="column-tasks" id="column-in-progress"></div>
+          <button class="add-task-btn" onclick="openAddTaskWithStatus('in-progress')">+ Add Task</button>
+        </div>
+        <div class="kanban-column" data-status="done">
+          <div class="column-header">
+            <h3>Done</h3>
+            <span class="column-count" id="count-done">0</span>
+          </div>
+          <div class="column-tasks" id="column-done"></div>
+          <button class="add-task-btn" onclick="openAddTaskWithStatus('done')">+ Add Task</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div id="calendar-view" class="view">
+      <div class="calendar-container">
+        <div id="calendar-content"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: Add/Edit Task -->
+<div class="modal-overlay hidden" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="task-modal-title">Add New Task</h2>
+      <button class="modal-close" onclick="closeModal('task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Task Title *</label>
+        <input type="text" id="t-title" placeholder="What needs to be done?" autofocus>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="t-type">
+            <option value="work">💼 Work</option>
+            <option value="personal">🌿 Personal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="t-priority">
+            <option value="low">🔵 Low</option>
+            <option value="med" selected>🟡 Medium</option>
+            <option value="high">🔴 High</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="t-due">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="t-status">
+            <option value="todo">To Do</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="t-category">
+          <option value="SME">SME / Technical</option>
+          <option value="Manager">Manager</option>
+          <option value="Agile">Agile / Sprint</option>
+          <option value="Admin">Admin</option>
+          <option value="Personal">Personal</option>
+          <option value="Health">Health</option>
+          <option value="Home">Home</option>
+          <option value="Finance">Finance</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="t-notes" placeholder="Add details, links, context..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Outlook Setup -->
+<div class="modal-overlay hidden" id="outlook-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Connect Outlook Calendar</h2>
+      <button class="modal-close" onclick="closeModal('outlook-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ol-setup-view">
+        <div class="info-box">
+          <b>One-time setup required.</b> You need a free Azure App Registration to allow this app to read your Outlook calendar. This is safe — the app only gets read-only calendar access.
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 1 — Register the app in Azure</div>
+          <p>Go to <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">portal.azure.com → App registrations</a> → <b>New registration</b>. Name: <code>MyTaskManager</code> · Account type: <b>Accounts in any org + personal</b><br>
+          Redirect URI: <b>Single-page application (SPA)</b> → paste the URL of this HTML file.</p>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 2 — Add API permissions</div>
+          <p>In your app → <b>API permissions</b> → Add → Microsoft Graph → Delegated:<br>
+          Add <code>Calendars.Read</code> and <code>User.Read</code> → click <b>Grant admin consent</b>.</p>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">Step 3 — Paste your Client ID below</div>
+          <p>Copy the <b>Application (client) ID</b> from the app overview page.</p>
+        </div>
+        <div class="form-group">
+          <label>Azure Application (Client) ID</label>
+          <input id="ol-client-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div id="ol-connected-view" style="display:none">
+        <div class="info-box success">
+          <b>✓ Outlook connected</b> — Syncing calendar events automatically.<br>
+          Signed in as: <span id="ol-user-display">—</span>
+        </div>
+        <button class="btn-secondary-full" onclick="syncOutlookNow()">↻ Sync Now</button>
+        <button class="btn-danger-full" onclick="disconnectOutlook()">Disconnect</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('outlook-modal')">Cancel</button>
+      <button class="btn-primary" id="ol-connect-btn" onclick="connectOutlook()">Connect & Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Settings -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚙️ Settings</h2>
+      <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">
+        <b>Anthropic API key required for AI features.</b><br>
+        Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key.<br>
+        Your key is stored only in your browser's localStorage — never sent anywhere except directly to Anthropic.
+      </div>
+      <div class="form-group">
+        <label>Anthropic API Key</label>
+        <input id="s-apikey" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+      </div>
+      <div id="s-key-status" class="form-hint"></div>
+      <div class="form-group">
+        <label>App display name</label>
+        <input id="s-appname" type="text" placeholder="MyTaskManager">
+      </div>
+      <div class="form-group">
+        <label>Clear all data</label>
+        <button class="btn-danger-full" onclick="clearAllData()">Delete All Data</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('settings-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AI Chat -->
+<div class="modal-overlay hidden" id="ai-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>✦ AI Task Assistant</h2>
+      <button class="modal-close" onclick="closeModal('ai-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ai-messages" class="ai-chat"></div>
+      <div id="ai-suggestions" class="ai-suggestions"></div>
+      <div class="form-group">
+        <textarea id="ai-input" placeholder="Ask for help prioritising, planning, decisions..." style="min-height:80px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('ai-modal')">Close</button>
+      <button class="btn-primary" onclick="sendAI()">Ask AI ✦</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.11.0/lib/msal-browser.min.js"></script>
+<script src="app-clickup.js"></script>
+
+</body>
+</html>
