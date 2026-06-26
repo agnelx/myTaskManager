@@ -58,7 +58,7 @@
       "due": "2026-06-25",
       "remind": "",
       "done": false,
-      "progress": 70
+      "progress": 0
     },
     {
       "id": 866,
@@ -105,8 +105,8 @@
       "cat": "SME",
       "due": "2026-06-17",
       "remind": "",
-      "done": false,
-      "progress": 95
+      "done": true,
+      "progress": 100
     },
     {
       "id": 932,
@@ -117,8 +117,8 @@
       "cat": "Manager",
       "due": "2026-06-25",
       "remind": "",
-      "done": false,
-      "progress": 0
+      "done": true,
+      "progress": 100
     },
     {
       "id": 1078,
@@ -226,7 +226,7 @@
       "due": "2026-06-30",
       "remind": "",
       "done": false,
-      "progress": 40
+      "progress": 0
     },
     {
       "id": 857,
