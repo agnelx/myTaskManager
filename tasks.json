@@ -299,6 +299,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 1101,
+      "type": "work",
+      "title": "Precommercial test plan for myPatch",
+      "note": "Prepare the role and respos, for myPatch testing between camAps fx and mylife , include diagrams",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-07-14",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
