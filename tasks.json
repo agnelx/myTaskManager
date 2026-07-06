@@ -287,6 +287,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 812,
+      "type": "work",
+      "title": "Reply to bern universtiy visit",
+      "note": "",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-07-07",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
