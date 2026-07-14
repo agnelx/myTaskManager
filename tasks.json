@@ -232,7 +232,7 @@
       "id": 857,
       "type": "work",
       "title": "MS planner update for myPatch",
-      "note": "Discuss with Dominic  and Daniel to identify the dependency / and how to approach the verification camping.",
+      "note": "Tuesday, July 7, 2026\n4:30 PM\n\n\t1. Update the mypatch planning \n\t\ta. Performance test cycle 1 , cycle 2 , cycle 3\n\t\tb. Use cases also update to cycle 1 , cycle 2 , cycle 3\n\t\n\t2. Meeting with Randi to discuss the scope of e2e verification deliverables - are we fine with camdi app test eveidence or do we need a internal test campign. - HF,SS\n\n\t- What are all the use cases do you need with IVA to be fulfilled ?\n\n\t\n\t1. Sandra - FIH study what we need from us ?\n\n\t- What are all the use cases do you need with IVA to be fulfilled ?\n\n\t4. Prepare the TP with details roles and responsibilites between mylife and camdiapp ?\nNext steps :",
       "pri": "med",
       "cat": "SME",
       "due": "2026-06-30",
