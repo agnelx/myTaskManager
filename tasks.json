@@ -21,8 +21,8 @@
       "cat": "Home",
       "due": "2026-06-30",
       "remind": "",
-      "done": false,
-      "progress": 40
+      "done": true,
+      "progress": 100
     },
     {
       "id": 771,
