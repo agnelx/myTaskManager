@@ -299,6 +299,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 1153,
+      "type": "work",
+      "title": "Coursera Licence Subscription",
+      "note": "",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-10-16",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
