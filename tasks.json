@@ -323,6 +323,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 704,
+      "type": "work",
+      "title": "Review and prepare the ppt for test con",
+      "note": "",
+      "pri": "med",
+      "cat": "Manager",
+      "due": "2026-11-06",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
