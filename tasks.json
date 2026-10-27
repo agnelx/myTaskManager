@@ -335,6 +335,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 908,
+      "type": "work",
+      "title": "Finish the travel expenses",
+      "note": "include the sbb to zurich and travel to biel",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-10-27",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
