@@ -347,6 +347,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 574,
+      "type": "work",
+      "title": "Presentation for meeting with CamDiapp",
+      "note": "",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-10-30",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
