@@ -359,6 +359,18 @@
       "remind": "",
       "done": false,
       "progress": 0
+    },
+    {
+      "id": 1149,
+      "type": "work",
+      "title": "Finish the analysis work on FIH usecases presentation",
+      "note": "Also check with Andreas the details",
+      "pri": "med",
+      "cat": "SME",
+      "due": "2026-10-27",
+      "remind": "",
+      "done": false,
+      "progress": 0
     }
   ],
   "meetings": [],
